@@ -9,9 +9,9 @@ def bitboard_to_tensor(bitboard: int) -> torch.Tensor:
     return torch.tensor(li).reshape((8, 8))
 
 
-def fen_to_tensors_list(fen: str) -> [torch.Tensor]:
+def fen_to_tensor(fen: str) -> [torch.Tensor]:
     board = chess.Board(fen)
-    return [
+    return torch.stack([
         bitboard_to_tensor(board.occupied_co[chess.WHITE]),
         bitboard_to_tensor(board.occupied_co[chess.BLACK]),
         bitboard_to_tensor(board.pawns),
@@ -20,16 +20,11 @@ def fen_to_tensors_list(fen: str) -> [torch.Tensor]:
         bitboard_to_tensor(board.knights),
         bitboard_to_tensor(board.bishops),
         bitboard_to_tensor(board.rooks)
-    ]
-
-
-def tensors_list_to_tensor(tensors: [torch.Tensor]) -> torch.Tensor:
-    return torch.stack(tensors)
+    ])
 
 
 def data_to_tensors(data: (str, float)) -> (torch.Tensor, torch.Tensor):
-    return [(tensors_list_to_tensor(fen_to_tensors_list(fen)), torch.tensor(value / 100, dtype=torch.float)) for
-            fen, value in data]
+    return [(fen_to_tensor(fen), torch.tensor(value / 100, dtype=torch.float)) for fen, value in data]
 
 
 def load_data_from_file(file_path: str) -> [(str, float)]:
