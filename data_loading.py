@@ -51,3 +51,31 @@ def dataset_to_batches(dataset: [(torch.Tensor, torch.Tensor)], batch_size) -> [
 
 def load_dataset_3d(file_path: str, batch_size) -> [(torch.Tensor, torch.Tensor)]:
     return dataset_to_batches(data_to_tensors_3d(load_data_from_file(file_path)), batch_size)
+
+
+def bitboard_to_tensor_1d(bitboard: int) -> torch.Tensor:
+    li = [1.0 if digit == '1' else 0.0 for digit in bin(bitboard)[2:]]
+    li = [0.0 for _ in range(64 - len(li))] + li
+    return torch.tensor(li)
+
+
+def fen_to_tensor_1d(fen: str) -> [torch.Tensor]:
+    board = chess.Board(fen)
+    return torch.cat([
+        bitboard_to_tensor_1d(board.occupied_co[chess.WHITE]),
+        bitboard_to_tensor_1d(board.occupied_co[chess.BLACK]),
+        bitboard_to_tensor_1d(board.pawns),
+        bitboard_to_tensor_1d(board.kings),
+        bitboard_to_tensor_1d(board.queens),
+        bitboard_to_tensor_1d(board.knights),
+        bitboard_to_tensor_1d(board.bishops),
+        bitboard_to_tensor_1d(board.rooks)
+    ])
+
+
+def data_to_tensors_1d(data: (str, float)) -> (torch.Tensor, torch.Tensor):
+    return [(fen_to_tensor_1d(fen), torch.tensor(value / 100, dtype=torch.float)) for fen, value in data]
+
+
+def load_dataset_1d(file_path: str, batch_size) -> [(torch.Tensor, torch.Tensor)]:
+    return dataset_to_batches(data_to_tensors_1d(load_data_from_file(file_path)), batch_size)
