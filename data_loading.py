@@ -55,4 +55,4 @@ def dataset_to_batches(dataset: [(torch.Tensor, torch.Tensor)], batch_size) -> [
 
 
 def load_dataset(file_path: str, batch_size) -> [(torch.Tensor, torch.Tensor)]:
-    return dataset_to_batches(data_to_tensors(filter_checkmates(load_data_from_file(file_path))), batch_size)
+    return dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
