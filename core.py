@@ -31,6 +31,7 @@ def train(data, batch_size, model, criterion, optimizer, accuracy, epoch):
 
 def test(data, batch_size, model, criterion, accuracy):
     model.cuda()
+    model.eval()
     criterion.cuda()
     size = len(data)
     print("Dataset size:", size)
