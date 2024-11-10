@@ -47,6 +47,12 @@ def data_to_tensors_3d(data: (str, float)) -> (torch.Tensor, torch.Tensor):
     return [(fen_to_tensor_3d(fen), torch.tensor(value / 100, dtype=torch.float)) for fen, value in data]
 
 
+def save_dataset_to_csv(dataset, filename):
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(dataset)
+
+
 def load_data_from_file(file_path: str) -> [(str, float)]:
     with open(file_path, 'r') as f:
         reader = csv.reader(f, delimiter=',')
