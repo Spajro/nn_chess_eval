@@ -9,7 +9,7 @@ def bitboard_to_tensor_3d(bitboard: int) -> torch.Tensor:
     return torch.tensor(li).reshape((8, 8))
 
 
-def fen_to_tensor_3d(fen: str) -> [torch.Tensor]:
+def old_fen_to_tensor_3d(fen: str) -> torch.Tensor:
     board = chess.Board(fen)
     return torch.stack([
         bitboard_to_tensor_3d(board.occupied_co[chess.WHITE]),
@@ -20,6 +20,26 @@ def fen_to_tensor_3d(fen: str) -> [torch.Tensor]:
         bitboard_to_tensor_3d(board.knights),
         bitboard_to_tensor_3d(board.bishops),
         bitboard_to_tensor_3d(board.rooks)
+    ])
+
+
+def fen_to_tensor_3d(fen: str) -> torch.Tensor:
+    board = chess.Board(fen)
+    white = board.occupied_co[chess.WHITE]
+    black = board.occupied_co[chess.BLACK]
+    return torch.stack([
+        bitboard_to_tensor_3d(white & board.kings),
+        bitboard_to_tensor_3d(black & board.kings),
+        bitboard_to_tensor_3d(white & board.queens),
+        bitboard_to_tensor_3d(black & board.queens),
+        bitboard_to_tensor_3d(white & board.rooks),
+        bitboard_to_tensor_3d(black & board.rooks),
+        bitboard_to_tensor_3d(white & board.bishops),
+        bitboard_to_tensor_3d(black & board.bishops),
+        bitboard_to_tensor_3d(white & board.knights),
+        bitboard_to_tensor_3d(black & board.knights),
+        bitboard_to_tensor_3d(white & board.pawns),
+        bitboard_to_tensor_3d(black & board.pawns)
     ])
 
 
@@ -59,7 +79,7 @@ def bitboard_to_tensor_1d(bitboard: int) -> torch.Tensor:
     return torch.tensor(li)
 
 
-def fen_to_tensor_1d(fen: str) -> [torch.Tensor]:
+def fen_to_tensor_1d_old(fen: str) -> [torch.Tensor]:
     board = chess.Board(fen)
     return torch.cat([
         bitboard_to_tensor_1d(board.occupied_co[chess.WHITE]),
@@ -70,6 +90,26 @@ def fen_to_tensor_1d(fen: str) -> [torch.Tensor]:
         bitboard_to_tensor_1d(board.knights),
         bitboard_to_tensor_1d(board.bishops),
         bitboard_to_tensor_1d(board.rooks)
+    ])
+
+
+def fen_to_tensor_1d(fen: str) -> torch.Tensor:
+    board = chess.Board(fen)
+    white = board.occupied_co[chess.WHITE]
+    black = board.occupied_co[chess.BLACK]
+    return torch.stack([
+        bitboard_to_tensor_1d(white & board.kings),
+        bitboard_to_tensor_1d(black & board.kings),
+        bitboard_to_tensor_1d(white & board.queens),
+        bitboard_to_tensor_1d(black & board.queens),
+        bitboard_to_tensor_1d(white & board.rooks),
+        bitboard_to_tensor_1d(black & board.rooks),
+        bitboard_to_tensor_1d(white & board.bishops),
+        bitboard_to_tensor_1d(black & board.bishops),
+        bitboard_to_tensor_1d(white & board.knights),
+        bitboard_to_tensor_1d(black & board.knights),
+        bitboard_to_tensor_1d(white & board.pawns),
+        bitboard_to_tensor_1d(black & board.pawns)
     ])
 
 
