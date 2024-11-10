@@ -1,0 +1,7 @@
+GAMES_PATCH = "lichess201405.pgn"
+PUZZLE_PATCH = "lichess_db_puzzle.csv"
+GAMES_DATASET_PATCH = "games_dataset.csv"
+PUZZLE_DATASET_PATCH = "puzzle_dataset.csv"
+TRAIN_DATASET_PATCH = "train_dataset.csv"
+TEST_DATASET_PATCH = "test_dataset.csv"
+STOCKFISH_PATH = "D:\\Programy\\stockfish\\stockfish-windows-x86-64-avx2.exe"
