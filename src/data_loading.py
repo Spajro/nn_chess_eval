@@ -1,4 +1,6 @@
 import csv
+import os
+
 import chess
 import torch
 
@@ -48,6 +50,7 @@ def data_to_tensors_3d(data: (str, float)) -> (torch.Tensor, torch.Tensor):
 
 
 def save_dataset_to_csv(dataset, filename):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(dataset)
