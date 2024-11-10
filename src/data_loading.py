@@ -85,25 +85,11 @@ def bitboard_to_tensor_1d(bitboard: int) -> torch.Tensor:
     return torch.tensor(li)
 
 
-def fen_to_tensor_1d_old(fen: str) -> [torch.Tensor]:
-    board = chess.Board(fen)
-    return torch.cat([
-        bitboard_to_tensor_1d(board.occupied_co[chess.WHITE]),
-        bitboard_to_tensor_1d(board.occupied_co[chess.BLACK]),
-        bitboard_to_tensor_1d(board.pawns),
-        bitboard_to_tensor_1d(board.kings),
-        bitboard_to_tensor_1d(board.queens),
-        bitboard_to_tensor_1d(board.knights),
-        bitboard_to_tensor_1d(board.bishops),
-        bitboard_to_tensor_1d(board.rooks)
-    ])
-
-
 def fen_to_tensor_1d(fen: str) -> torch.Tensor:
     board = chess.Board(fen)
     white = board.occupied_co[chess.WHITE]
     black = board.occupied_co[chess.BLACK]
-    return torch.stack([
+    return torch.cat([
         bitboard_to_tensor_1d(white & board.kings),
         bitboard_to_tensor_1d(black & board.kings),
         bitboard_to_tensor_1d(white & board.queens),
