@@ -59,7 +59,7 @@ def train(train_data, test_data, batch_size, model, criterion, optimizer, accura
             val_acc = accuracy_sum / size
 
         passed_time = math.ceil(time.time() * 1000 - time_started)
-        print(f"Epoch [{i + 1}/{epoch}],  train: {loss_average:.5f},{accuracy_average:.1f}    val: {val_loss:.5f}, {val_acc:.1f}  test: {test_loss:.5f},{test_accuracy:.1f},  time: {passed_time / 1000}s")
+        print(f"Epoch [{i + 1}/{epoch}],  train: {loss_average:.5f},{accuracy_average:.1f}    san_check: {val_loss:.5f}, {val_acc:.1f}  test: {test_loss:.5f},{test_accuracy:.1f},  time: {passed_time / 1000}s")
 
 
 def test(data, batch_size, model, criterion, accuracy):
