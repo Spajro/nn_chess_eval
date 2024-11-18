@@ -1,52 +1,14 @@
 import csv
 import os
-
-import chess
 import torch
 
 
-def bitboard_to_tensor_3d(bitboard: int) -> torch.Tensor:
-    li = [1.0 if digit == '1' else 0.0 for digit in bin(bitboard)[2:]]
-    li = [0.0 for _ in range(64 - len(li))] + li
-    return torch.tensor(li).reshape((8, 8))
+def cp_to_wdl(value: int) -> float:
+    return value / 410
 
 
-def old_fen_to_tensor_3d(fen: str) -> torch.Tensor:
-    board = chess.Board(fen)
-    return torch.stack([
-        bitboard_to_tensor_3d(board.occupied_co[chess.WHITE]),
-        bitboard_to_tensor_3d(board.occupied_co[chess.BLACK]),
-        bitboard_to_tensor_3d(board.pawns),
-        bitboard_to_tensor_3d(board.kings),
-        bitboard_to_tensor_3d(board.queens),
-        bitboard_to_tensor_3d(board.knights),
-        bitboard_to_tensor_3d(board.bishops),
-        bitboard_to_tensor_3d(board.rooks)
-    ])
-
-
-def fen_to_tensor_3d(fen: str) -> torch.Tensor:
-    board = chess.Board(fen)
-    white = board.occupied_co[chess.WHITE]
-    black = board.occupied_co[chess.BLACK]
-    return torch.stack([
-        bitboard_to_tensor_3d(white & board.kings),
-        bitboard_to_tensor_3d(black & board.kings),
-        bitboard_to_tensor_3d(white & board.queens),
-        bitboard_to_tensor_3d(black & board.queens),
-        bitboard_to_tensor_3d(white & board.rooks),
-        bitboard_to_tensor_3d(black & board.rooks),
-        bitboard_to_tensor_3d(white & board.bishops),
-        bitboard_to_tensor_3d(black & board.bishops),
-        bitboard_to_tensor_3d(white & board.knights),
-        bitboard_to_tensor_3d(black & board.knights),
-        bitboard_to_tensor_3d(white & board.pawns),
-        bitboard_to_tensor_3d(black & board.pawns)
-    ])
-
-
-def data_to_tensors_3d(data: (str, float)) -> (torch.Tensor, torch.Tensor):
-    return [(fen_to_tensor_3d(fen), torch.tensor(value / 100, dtype=torch.float)) for fen, value in data]
+def wdl_to_co(value: float) -> int:
+    return int(value * 410)
 
 
 def save_dataset_to_csv(dataset, filename):
@@ -76,41 +38,3 @@ def dataset_to_batches(dataset: [(torch.Tensor, torch.Tensor)], batch_size) -> [
         batches.append((torch.stack(batch).cuda(), torch.tensor(truth).cuda()))
 
     return batches
-
-
-def load_dataset_3d(file_path: str, batch_size) -> [(torch.Tensor, torch.Tensor)]:
-    return dataset_to_batches(data_to_tensors_3d(load_data_from_file(file_path)), batch_size)
-
-
-def bitboard_to_tensor_1d(bitboard: int) -> torch.Tensor:
-    li = [1.0 if digit == '1' else 0.0 for digit in bin(bitboard)[2:]]
-    li = [0.0 for _ in range(64 - len(li))] + li
-    return torch.tensor(li)
-
-
-def fen_to_tensor_1d(fen: str) -> torch.Tensor:
-    board = chess.Board(fen)
-    white = board.occupied_co[chess.WHITE]
-    black = board.occupied_co[chess.BLACK]
-    return torch.cat([
-        bitboard_to_tensor_1d(white & board.kings),
-        bitboard_to_tensor_1d(black & board.kings),
-        bitboard_to_tensor_1d(white & board.queens),
-        bitboard_to_tensor_1d(black & board.queens),
-        bitboard_to_tensor_1d(white & board.rooks),
-        bitboard_to_tensor_1d(black & board.rooks),
-        bitboard_to_tensor_1d(white & board.bishops),
-        bitboard_to_tensor_1d(black & board.bishops),
-        bitboard_to_tensor_1d(white & board.knights),
-        bitboard_to_tensor_1d(black & board.knights),
-        bitboard_to_tensor_1d(white & board.pawns),
-        bitboard_to_tensor_1d(black & board.pawns)
-    ])
-
-
-def data_to_tensors_1d(data: (str, float)) -> (torch.Tensor, torch.Tensor):
-    return [(fen_to_tensor_1d(fen), torch.tensor(value / 100, dtype=torch.float)) for fen, value in data]
-
-
-def load_dataset_1d(file_path: str, batch_size) -> [(torch.Tensor, torch.Tensor)]:
-    return dataset_to_batches(data_to_tensors_1d(load_data_from_file(file_path)), batch_size)
