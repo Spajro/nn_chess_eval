@@ -7,8 +7,8 @@ def cp_to_wdl(value: int) -> float:
     return value / 410
 
 
-def wdl_to_co(value: float) -> int:
-    return int(value * 410)
+def wdl_to_cp(value):
+    return value * 410
 
 
 def save_dataset_to_csv(dataset, filename):
