@@ -1,9 +1,21 @@
 import chess
 import torch
 
-from src.data_loading import cp_to_wdl, load_data_from_file
+from src.data_loading import cp_to_wdl, load_data_from_file, Dataset
 
 M = 40960
+
+
+class HalfKpDataset(Dataset):
+    def __init__(self, file_path: str, batch_size):
+        self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
+
+    def __iter__(self):
+        for batch, truth in self.data:
+            yield batch_to_tensors(batch), truth
+
+    def __len__(self):
+        return len(self.data)
 
 
 def gather_pieces_from_board(board: chess.Board):
@@ -65,10 +77,6 @@ def dataset_to_batches(dataset: [([int], torch.Tensor)], batch_size) -> [(torch.
         batches.append((batch, torch.tensor(truth).cuda()))
 
     return batches
-
-
-def load_dataset(file_path: str, batch_size) -> [(torch.Tensor, torch.Tensor)]:
-    return dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
 
 
 def batch_to_tensors(batch: [[int]]) -> torch.Tensor:

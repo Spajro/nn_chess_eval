@@ -3,6 +3,11 @@ import os
 import torch
 
 
+class Dataset:
+    def __iter__(self):
+        pass
+
+
 def cp_to_wdl(value: int) -> float:
     return value / 410
 
