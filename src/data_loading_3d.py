@@ -39,7 +39,7 @@ def fen_to_tensor(fen: str) -> torch.Tensor:
         bitboard_to_tensor(black & board.bishops),
         bitboard_to_tensor(black & board.knights),
         bitboard_to_tensor(black & board.pawns)
-    ])
+    ]).cuda()
 
 
 def data_to_tensors(data: (str, float)) -> (torch.Tensor, torch.Tensor):

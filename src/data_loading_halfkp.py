@@ -83,4 +83,4 @@ def batch_to_tensors(batch: [[int]]) -> torch.Tensor:
     result = []
     for features in batch:
         result.append(feature_set_to_tensor(features))
-    return torch.stack(result)
+    return torch.stack(result).cuda()
