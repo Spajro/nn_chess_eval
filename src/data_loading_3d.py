@@ -7,7 +7,7 @@ from src.data_loading import dataset_to_batches, load_data_from_file, cp_to_wdl,
 class Dataset3D(Dataset):
     def __init__(self, file_path: str, batch_size):
         self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
-        self.batch_size = batch_size
+        self.size = batch_size
 
     def __iter__(self):
         for batch, truth in self.data:
@@ -17,7 +17,7 @@ class Dataset3D(Dataset):
         return len(self.data)
 
     def batch_size(self):
-        return self.batch_size
+        return self.size
 
 
 def bitboard_to_tensor(bitboard: int) -> torch.Tensor:

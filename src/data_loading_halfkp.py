@@ -9,7 +9,7 @@ M = 40960
 class HalfKpDataset(Dataset):
     def __init__(self, file_path: str, batch_size):
         self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
-        self.batch_size = batch_size
+        self.size = batch_size
 
     def __iter__(self):
         for batch, truth in self.data:
@@ -19,7 +19,7 @@ class HalfKpDataset(Dataset):
         return len(self.data)
 
     def batch_size(self):
-        return self.batch_size
+        return self.size
 
 
 def gather_pieces_from_board(board: chess.Board):
