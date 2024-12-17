@@ -7,6 +7,12 @@ class Dataset:
     def __iter__(self):
         pass
 
+    def __len__(self):
+        pass
+
+    def batch_size(self):
+        pass
+
 
 def cp_to_wdl(value: int) -> float:
     return value / 410
