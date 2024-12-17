@@ -7,9 +7,6 @@ def train(train_data, test_data, model, criterion, optimizer, accuracy, epoch):
     model.train(True)
     model.cuda()
     criterion.cuda()
-    size = len(train_data)
-    test_size = len(test_data)
-    print("Dataset size:", size)
     for i in range(epoch):
         time_started = time.time() * 1000
         loss_sum = 0.0
@@ -25,51 +22,29 @@ def train(train_data, test_data, model, criterion, optimizer, accuracy, epoch):
             loss_sum += loss.item()
             accuracy_sum += accuracy_value.item()
 
-        loss_average = loss_sum / size
-        accuracy_average = accuracy_sum / size
+        loss_average = loss_sum / len(train_data)
+        accuracy_average = accuracy_sum / len(train_data)
 
-        loss_sum = 0.0
-        accuracy_sum = 0.0
-        with torch.no_grad():
-            model.eval()
-            for batch, truth in test_data:
-                out = model.forward(batch).reshape(test_data.batch_size())
-                loss = criterion(out, truth)
-                accuracy_value = accuracy(out, truth).sum() / test_data.batch_size()
-
-                loss_sum += loss.item()
-                accuracy_sum += accuracy_value.item()
-            model.train(True)
-            test_loss = loss_sum / test_size
-            test_accuracy = accuracy_sum / test_size
-
-        loss_sum = 0.0
-        accuracy_sum = 0.0
-        with torch.no_grad():
-            model.eval()
-            for batch, truth in train_data:
-                out = model.forward(batch).reshape(train_data.batch_size())
-                loss = criterion(out, truth)
-                accuracy_value = accuracy(out, truth).sum() / train_data.batch_size()
-
-                loss_sum += loss.item()
-                accuracy_sum += accuracy_value.item()
-            model.train(True)
-            val_loss = loss_sum / size
-            val_acc = accuracy_sum / size
+        test_loss, test_acc = iterate(test_data, model, criterion, accuracy)
+        val_loss, val_acc = iterate(train_data, model, criterion, accuracy)
 
         passed_time = math.ceil(time.time() * 1000 - time_started)
         print(
-            f"Epoch [{i + 1}/{epoch}],  train: {loss_average:.5f},{accuracy_average:.1f}    san_check: {val_loss:.5f}, {val_acc:.1f}  test: {test_loss:.5f},{test_accuracy:.1f},  time: {passed_time / 1000}s")
+            f"Epoch [{i + 1}/{epoch}],  train: {loss_average:.5f},{accuracy_average:.1f}    san_check: {val_loss:.5f}, {val_acc:.1f}  test: {test_loss:.5f},{test_acc:.1f},  time: {passed_time / 1000}s")
 
 
 def test(data, model, criterion, accuracy):
     model.cuda()
     model.eval()
     criterion.cuda()
-    size = len(data)
-    print("Dataset size:", size)
     time_started = time.time() * 1000
+    loss_average, accuracy_average = iterate(data, model, criterion, accuracy)
+    passed_time = math.ceil(time.time() * 1000 - time_started)
+    print(
+        f"test_loss: {loss_average}, test_accuracy: {accuracy_average}, time: {passed_time / 1000}s")
+
+
+def iterate(data, model, criterion, accuracy):
     loss_sum = 0.0
     accuracy_sum = 0.0
     with torch.no_grad():
@@ -81,8 +56,6 @@ def test(data, model, criterion, accuracy):
             loss_sum += loss.item()
             accuracy_sum += accuracy_value.item()
 
-    passed_time = math.ceil(time.time() * 1000 - time_started)
-    loss_average = loss_sum / size
-    accuracy_average = accuracy_sum / size
-    print(
-        f"test_loss: {loss_average}, test_accuracy: {accuracy_average}, time: {passed_time / 1000}s")
+    loss_average = loss_sum / len(data)
+    accuracy_average = accuracy_sum / len(data)
+    return loss_average, accuracy_average
