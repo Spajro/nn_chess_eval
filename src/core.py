@@ -3,7 +3,7 @@ import time
 import torch
 
 
-def train(train_data, test_data, model, criterion, optimizer, accuracy, epoch, checkpoint=None):
+def train(train_data, test_data, model, criterion, optimizer, accuracy, epoch, checkpoint=None, san_check=True):
     if checkpoint:
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -37,7 +37,10 @@ def train(train_data, test_data, model, criterion, optimizer, accuracy, epoch, c
         train_acc = accuracy_sum / len(train_data)
 
         test_loss, test_acc = iterate(test_data, model, criterion, accuracy)
-        val_loss, val_acc = iterate(train_data, model, criterion, accuracy)
+        if san_check:
+            val_loss, val_acc = iterate(train_data, model, criterion, accuracy)
+        else:
+            val_loss, val_acc = -1, -1
 
         passed_time = math.ceil(time.time() * 1000 - time_started)
         checkpoint['history'].append(
