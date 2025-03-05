@@ -1,0 +1,3 @@
+python3 puzzle_dataset_preparation.py 10000
+python3 game_dataset_preparation.py 10000
+python3 dataset_merge.py
