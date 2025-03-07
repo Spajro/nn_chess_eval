@@ -59,9 +59,10 @@ train(train_dataset,
       optimizer,
       accuracy,
       300,
-      checkpoint)
+      checkpoint=checkpoint,
+      prefix="halfkp")
 
-torch.save(checkpoint, 'halfkp_checkpoint.pt')
+torch.save(checkpoint, 'halfkp_final.pt')
 
 torch.save([[model.layer1.weight.tolist(), model.layer1.bias.tolist()],
             [model.layer2.weight.tolist(), model.layer2.bias.tolist()],

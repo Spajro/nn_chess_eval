@@ -3,7 +3,18 @@ import time
 import torch
 
 
-def train(train_data, test_data, model, criterion, optimizer, accuracy, epoch, checkpoint=None, san_check=True):
+def train(train_data,
+          test_data,
+          model,
+          criterion,
+          optimizer,
+          accuracy,
+          epoch,
+          prefix="train",
+          san_check=True,
+          checkpoint=None,
+          save_checkpoint_every=25,
+          ):
     if checkpoint:
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -43,12 +54,15 @@ def train(train_data, test_data, model, criterion, optimizer, accuracy, epoch, c
             val_loss, val_acc = -1, -1
 
         passed_time = math.ceil(time.time() * 1000 - time_started)
-        checkpoint['history'].append(
-            [i + 1, passed_time / 1000, train_loss, train_acc, val_loss, val_acc, test_loss, test_acc])
-        checkpoint = {'epoch': i + 1,
-                      'model': model.state_dict(),
-                      'optimizer': optimizer.state_dict(),
-                      'history': checkpoint['history']}
+        if checkpoint:
+            checkpoint['history'].append(
+                [i + 1, passed_time / 1000, train_loss, train_acc, val_loss, val_acc, test_loss, test_acc])
+            checkpoint = {'epoch': i + 1,
+                          'model': model.state_dict(),
+                          'optimizer': optimizer.state_dict(),
+                          'history': checkpoint['history']}
+            if save_checkpoint_every > 0 and i % save_checkpoint_every == 0:
+                torch.save(checkpoint, prefix + "-cp-" + str(i) + '.pth')
         log([('train', train_loss, train_acc), ('san', val_loss, val_acc), ('test', test_loss, test_acc)],
             passed_time / 1000,
             (i, epoch))
