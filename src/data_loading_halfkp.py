@@ -7,13 +7,14 @@ M = 40960
 
 
 class HalfKpDataset(Dataset):
-    def __init__(self, file_path: str, batch_size):
-        self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
+    def __init__(self, file_path: str, batch_size, device):
+        self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size, device)
         self.size = batch_size
+        self.device = device
 
     def __iter__(self):
         for batch, truth in self.data:
-            yield batch_to_tensors(batch), truth
+            yield batch_to_tensors(batch, self.device), truth
 
     def __len__(self):
         return len(self.data)
@@ -67,7 +68,7 @@ def data_to_tensors(data: (str, float)) -> ([int], torch.Tensor):
              torch.tensor(cp_to_wdl(value), dtype=torch.float)) for fen, value in data]
 
 
-def dataset_to_batches(dataset: [([int], torch.Tensor)], batch_size) -> [(torch.Tensor, torch.Tensor)]:
+def dataset_to_batches(dataset: [([int], torch.Tensor)], batch_size, device) -> [(torch.Tensor, torch.Tensor)]:
     batches = []
     index = 0
     while index + batch_size <= len(dataset):
@@ -78,13 +79,13 @@ def dataset_to_batches(dataset: [([int], torch.Tensor)], batch_size) -> [(torch.
             batch.append(dataset[index][0])
             truth.append(dataset[index][1])
             index += 1
-        batches.append((batch, torch.tensor(truth).cuda()))
+        batches.append((batch, torch.tensor(truth).to(device)))
 
     return batches
 
 
-def batch_to_tensors(batch: [[int]]) -> torch.Tensor:
+def batch_to_tensors(batch: [[int]], device) -> torch.Tensor:
     result = []
     for features in batch:
         result.append(feature_set_to_tensor(features))
-    return torch.stack(result).cuda()
+    return torch.stack(result).to(device)

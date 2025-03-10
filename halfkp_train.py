@@ -4,19 +4,7 @@ from torch import nn
 from src.core import train
 from src.data_loading import wdl_to_cp
 from src.data_loading_halfkp import HalfKpDataset, M
-
-BATCH_SIZE = 64
-
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
-
-train_dataset = HalfKpDataset(TRAIN_DATASET_PATCH, BATCH_SIZE)
-test_dataset = HalfKpDataset(TEST_DATASET_PATCH, BATCH_SIZE)
-len(train_dataset), len(test_dataset)
-
-
-def accuracy(out, truth):
-    return wdl_to_cp(torch.abs(truth - out))
-
 
 x0 = 2 * M
 x1 = 2 ** 8
@@ -39,6 +27,17 @@ class Model(nn.Module):
         return self.classifier.forward(X)
 
 
+def accuracy(out, truth):
+    return wdl_to_cp(torch.abs(truth - out))
+
+
+BATCH_SIZE = 64
+DEVICE = "cuda:0"
+
+train_dataset = HalfKpDataset(TRAIN_DATASET_PATCH, BATCH_SIZE, DEVICE)
+test_dataset = HalfKpDataset(TEST_DATASET_PATCH, BATCH_SIZE, DEVICE)
+len(train_dataset), len(test_dataset)
+
 model = Model()
 optimizer = torch.optim.SGD(model.classifier.parameters(), lr=0.001)
 
@@ -59,6 +58,7 @@ train(train_dataset,
       optimizer,
       accuracy,
       300,
+      DEVICE,
       checkpoint=checkpoint,
       prefix="halfkp")
 

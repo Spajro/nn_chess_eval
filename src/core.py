@@ -10,6 +10,7 @@ def train(train_data,
           optimizer,
           accuracy,
           epoch,
+          device,
           prefix="train",
           san_check=True,
           checkpoint=None,
@@ -27,8 +28,8 @@ def train(train_data,
     else:
         start = 0
     model.train(True)
-    model.cuda()
-    criterion.cuda()
+    model.to(device)
+    criterion.to(device)
     for i in range(start, epoch):
         time_started = time.time() * 1000
         loss_sum = 0.0
