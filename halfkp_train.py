@@ -84,8 +84,3 @@ train(train_dataset,
       san_check=san_check)
 
 torch.save(checkpoint, prefix + '-final.pt')
-
-torch.save([[model.layer1.weight.tolist(), model.layer1.bias.tolist()],
-            [model.layer2.weight.tolist(), model.layer2.bias.tolist()],
-            [model.layer3.weight.tolist(), model.layer3.bias.tolist()]],
-           prefix + '-wb.pt')
