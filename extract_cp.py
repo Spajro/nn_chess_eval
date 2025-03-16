@@ -1,4 +1,5 @@
 import argparse
+import pickle
 
 import torch
 
@@ -18,7 +19,7 @@ for epoch, passed_time, train_loss, train_acc, val_loss, val_acc, test_loss, tes
 
 nname = name + '_wb.pt'
 
-torch.save({
+pickle.dump({
     'l1w': checkpoint['model']['layer1.weight'].tolist(),
     'l1b': checkpoint['model']['layer1.bias'].tolist(),
     'l2w': checkpoint['model']['layer2.weight'].tolist(),
@@ -26,4 +27,4 @@ torch.save({
     'l3w': checkpoint['model']['layer3.weight'].tolist(),
     'l3b': checkpoint['model']['layer3.bias'].tolist(),
 },
-    nname)
+    open(nname, 'wb'))
