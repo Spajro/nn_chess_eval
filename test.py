@@ -4,14 +4,14 @@ import chess
 import torch
 from torch import nn
 
-from src.rdzawa_bestia_eval import evaluate
 from src.data_loading import load_data_from_file, wdl_to_cp
-from src.data_loading_halfkp import M, feature_set_to_tensor, board_to_feature_set
+from src.data_loading_halfkp import FEATURES_COUNT, feature_set_to_tensor, board_to_feature_set
 from src.patches import TEST_DATASET_PATCH
+from src.rdzawa_bestia_eval import evaluate
 
 P1, P2, P3 = 100, 300, 500
 
-x0 = 2 * M
+x0 = 2 * FEATURES_COUNT
 x1 = 2 ** 8
 x2 = 2 ** 5
 
@@ -65,18 +65,21 @@ def log(result, count, result1, count1, result2, count2, result3, count3, result
     print(str(P3) + ',inf', result4 / count4, count4)
 
 
-def evaluate_model(model, board):
-    tensor=feature_set_to_tensor(board_to_feature_set(board))
+def evaluate_model(model, board, device):
+    tensor = feature_set_to_tensor(board_to_feature_set(board), device)
     return model.forward(tensor)
 
 
 parser = argparse.ArgumentParser(description='Halfkp NNUE test')
 parser.add_argument('name', type=str, help='checkpoint to test')
+parser.add_argument('--device', type=str, default='cpu', help='cuda:X or cpu')
 args = parser.parse_args()
 
 name = args.name
+device = args.device
+
 checkpoint = torch.load(name)
-model=Model().cuda()
+model = Model().to(device)
 model.load_state_dict(checkpoint['model'])
 data = load_data_from_file(TEST_DATASET_PATCH)
 
@@ -86,5 +89,5 @@ r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(evaluate)
 log(r, c, r1, c1, r2, c2, r3, c3, r4, c4)
 
 print("CHECKPOINT MODEL")
-r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(lambda x: wdl_to_cp(evaluate_model(model, x)).item())
+r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(lambda x: wdl_to_cp(evaluate_model(model, x, device)).item())
 log(r, c, r1, c1, r2, c2, r3, c3, r4, c4)

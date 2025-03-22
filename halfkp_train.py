@@ -5,10 +5,10 @@ from torch import nn
 
 from src.core import train
 from src.data_loading import wdl_to_cp
-from src.data_loading_halfkp import HalfKpDataset, M
+from src.data_loading_halfkp import HalfKpDataset, FEATURES_COUNT
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
 
-x0 = 2 * M
+x0 = 2 * FEATURES_COUNT
 x1 = 2 ** 8
 x2 = 2 ** 5
 

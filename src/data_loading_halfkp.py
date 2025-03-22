@@ -3,7 +3,7 @@ import torch
 
 from src.data_loading import cp_to_wdl, load_data_from_file, Dataset
 
-M = 40960
+FEATURES_COUNT = 40960
 
 
 class HalfKpDataset(Dataset):
@@ -38,9 +38,8 @@ def generate_indexes(piece_type: chess.PieceType,
                      piece_square: chess.Square,
                      white_king: chess.Square,
                      black_king: chess.Square):
-    p_idx = piece_type * 2 + piece_color
-    white_idx = piece_square + (p_idx + white_king * 10) * 64
-    black_idx = piece_square + (p_idx + black_king * 10) * 64
+    white_idx = piece_square + (white_king * 10 + piece_type * 2 + piece_color) * 64
+    black_idx = piece_square + (black_king * 10 + piece_type * 2 + (not piece_color)) * 64
     return white_idx, black_idx
 
 
@@ -50,14 +49,15 @@ def board_to_feature_set(board: chess.Board):
     features = []
 
     for (piece_type, piece_color, piece_square) in gather_pieces_from_board(board):
-        (white_idx, black_idx) = generate_indexes(piece_type, piece_color, piece_square, white_king, black_king)
-        features.append(white_idx)
-        features.append(black_idx)
+        if piece_type != chess.KING:
+            (white_idx, black_idx) = generate_indexes(piece_type, piece_color, piece_square, white_king, black_king)
+            features.append(white_idx)
+            features.append(black_idx)
     return features
 
 
-def feature_set_to_tensor(features):
-    tensor = torch.zeros(2 * M).cuda()
+def feature_set_to_tensor(features, device):
+    tensor = torch.zeros(2 * FEATURES_COUNT).to(device)
     for feature in features:
         tensor[feature] = 1
     return tensor
@@ -87,5 +87,5 @@ def dataset_to_batches(dataset: [([int], torch.Tensor)], batch_size, device) -> 
 def batch_to_tensors(batch: [[int]], device) -> torch.Tensor:
     result = []
     for features in batch:
-        result.append(feature_set_to_tensor(features))
+        result.append(feature_set_to_tensor(features, device))
     return torch.stack(result).to(device)
