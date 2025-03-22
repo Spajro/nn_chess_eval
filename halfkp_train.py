@@ -6,27 +6,8 @@ from torch import nn
 from src.core import train
 from src.data_loading import wdl_to_cp
 from src.data_loading_halfkp import HalfKpDataset, FEATURES_COUNT
+from src.nnue import NNUE
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
-
-x0 = 2 * FEATURES_COUNT
-x1 = 2 ** 8
-x2 = 2 ** 5
-
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.layer1 = nn.Linear(x0, x1)
-        self.layer2 = nn.Linear(x1, x2)
-        self.layer3 = nn.Linear(x2, 1)
-        self.classifier = nn.Sequential(self.layer1,
-                                        nn.ReLU(),
-                                        self.layer2,
-                                        nn.ReLU(),
-                                        self.layer3)
-
-    def forward(self, X):
-        return self.classifier.forward(X)
 
 
 def accuracy(out, truth):
@@ -57,7 +38,7 @@ train_dataset = HalfKpDataset(TRAIN_DATASET_PATCH, batch_size, device)
 test_dataset = HalfKpDataset(TEST_DATASET_PATCH, batch_size, device)
 len(train_dataset), len(test_dataset)
 
-model = Model()
+model = NNUE()
 optimizer = torch.optim.SGD(model.classifier.parameters(), lr=lr)
 
 LOAD_FLAG = False

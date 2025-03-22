@@ -2,34 +2,14 @@ import argparse
 
 import chess
 import torch
-from torch import nn
 
 from src.data_loading import load_data_from_file, wdl_to_cp
-from src.data_loading_halfkp import FEATURES_COUNT, feature_set_to_tensor, board_to_feature_set
+from src.data_loading_halfkp import feature_set_to_tensor, board_to_feature_set
+from src.nnue import NNUE
 from src.patches import TEST_DATASET_PATCH
 from src.rdzawa_bestia_eval import evaluate
 
 P1, P2, P3 = 100, 300, 500
-
-x0 = 2 * FEATURES_COUNT
-x1 = 2 ** 8
-x2 = 2 ** 5
-
-
-class Model(nn.Module):
-    def __init__(self):
-        super(Model, self).__init__()
-        self.layer1 = nn.Linear(x0, x1)
-        self.layer2 = nn.Linear(x1, x2)
-        self.layer3 = nn.Linear(x2, 1)
-        self.classifier = nn.Sequential(self.layer1,
-                                        nn.ReLU(),
-                                        self.layer2,
-                                        nn.ReLU(),
-                                        self.layer3)
-
-    def forward(self, X):
-        return self.classifier.forward(X)
 
 
 def test(evaluate):
@@ -79,10 +59,9 @@ name = args.name
 device = args.device
 
 checkpoint = torch.load(name)
-model = Model().to(device)
+model = NNUE().to(device)
 model.load_state_dict(checkpoint['model'])
 data = load_data_from_file(TEST_DATASET_PATCH)
-
 
 print("RDZAWA BESTIA")
 r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(evaluate)
