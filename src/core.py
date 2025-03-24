@@ -34,9 +34,9 @@ def train(train_data,
         time_started = time.time() * 1000
         loss_sum = 0.0
         accuracy_sum = 0.0
-        for batch, truth in train_data:
+        for batch, color, truth in train_data:
             optimizer.zero_grad()
-            out = model.forward(batch).reshape(train_data.batch_size())
+            out = model.forward(batch, color).reshape(train_data.batch_size())
             loss = criterion(out, truth)
             accuracy_value = accuracy(out, truth).sum() / train_data.batch_size()
             loss.backward()
@@ -83,9 +83,9 @@ def iterate(data, model, criterion, accuracy):
     loss_sum = 0.0
     accuracy_sum = 0.0
     with torch.no_grad():
-        for batch, truth in data:
+        for batch, color, truth in data:
             out = model.forward(batch).reshape(data.batch_size())
-            loss = criterion(out, truth)
+            loss = criterion(out, color, truth)
             accuracy_value = accuracy(out, truth).sum() / data.batch_size()
 
             loss_sum += loss.item()

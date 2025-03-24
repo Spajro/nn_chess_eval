@@ -13,8 +13,8 @@ class HalfKpDataset(Dataset):
         self.device = device
 
     def __iter__(self):
-        for batch, truth in self.data:
-            yield batch_to_tensors(batch, self.device), truth
+        for batch, color, truth in self.data:
+            yield batch_to_tensors(batch, self.device), color, truth
 
     def __len__(self):
         return len(self.data)
@@ -63,23 +63,31 @@ def feature_set_to_tensor(features, device):
     return tensor
 
 
-def data_to_tensors(data: (str, float)) -> ([int], torch.Tensor):
-    return [(board_to_feature_set(chess.Board(fen)),
-             torch.tensor(cp_to_wdl(value), dtype=torch.float)) for fen, value in data]
+def fen_to_stm(fen: str) -> chess.Color:
+    return 'w' in fen
 
 
-def dataset_to_batches(dataset: [([int], torch.Tensor)], batch_size, device) -> [(torch.Tensor, torch.Tensor)]:
+def data_to_tensors(data: (str, float)) -> ([int], chess.Color, float):
+    return [(board_to_feature_set(chess.Board(fen)), fen_to_stm(fen), cp_to_wdl(value)) for fen, value in data]
+
+
+def dataset_to_batches(dataset: [([int], chess.Color, float)],
+                       batch_size: int,
+                       device: str
+                       ) -> [(torch.Tensor, torch.Tensor, torch.Tensor)]:
     batches = []
     index = 0
     while index + batch_size <= len(dataset):
         batch = []
+        color = []
         truth = []
         max_index = index + batch_size
         while index < max_index:
             batch.append(dataset[index][0])
-            truth.append(dataset[index][1])
+            color.append(dataset[index][1])
+            truth.append(dataset[index][2])
             index += 1
-        batches.append((batch, torch.tensor(truth).to(device)))
+        batches.append((batch, torch.tensor(color).to(device), torch.tensor(truth).to(device)))
 
     return batches
 
