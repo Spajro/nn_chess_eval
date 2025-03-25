@@ -84,8 +84,8 @@ def iterate(data, model, criterion, accuracy):
     accuracy_sum = 0.0
     with torch.no_grad():
         for batch, color, truth in data:
-            out = model.forward(batch).reshape(data.batch_size())
-            loss = criterion(out, color, truth)
+            out = model.forward(batch,color).reshape(data.batch_size())
+            loss = criterion(out, truth)
             accuracy_value = accuracy(out, truth).sum() / data.batch_size()
 
             loss_sum += loss.item()

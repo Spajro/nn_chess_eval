@@ -5,7 +5,7 @@ from torch import nn
 
 from src.core import train
 from src.data_loading import wdl_to_cp
-from src.data_loading_halfkp import HalfKpDataset, FEATURES_COUNT
+from src.data_loading_halfkp import HalfKpDataset
 from src.nnue import NNUE
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
 
