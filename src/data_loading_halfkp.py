@@ -8,7 +8,7 @@ FEATURES_COUNT = 40960
 
 class HalfKpDataset(Dataset):
     def __init__(self, file_path: str, batch_size, device):
-        self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size, device)
+        self.data = dataset_to_batches(load_data_from_file(file_path), batch_size, device)
         self.size = batch_size
         self.device = device
 
@@ -71,7 +71,7 @@ def data_to_tensors(data: (str, float)) -> ([int], chess.Color, float):
     return [(board_to_feature_set(chess.Board(fen)), fen_to_stm(fen), cp_to_wdl(value)) for fen, value in data]
 
 
-def dataset_to_batches(dataset: [([int], chess.Color, float)],
+def dataset_to_batches(dataset: [([int], float)],
                        batch_size: int,
                        device: str
                        ) -> [(torch.Tensor, torch.Tensor, torch.Tensor)]:
@@ -83,9 +83,17 @@ def dataset_to_batches(dataset: [([int], chess.Color, float)],
         truth = []
         max_index = index + batch_size
         while index < max_index:
-            batch.append(dataset[index][0])
-            color.append(dataset[index][1])
-            truth.append(dataset[index][2])
+            fen = dataset[index][0]
+            value = dataset[index][1]
+            stm = fen_to_stm(fen)
+
+            batch.append(board_to_feature_set(chess.Board(fen)))
+            color.append(stm)
+            if stm == chess.WHITE:
+                truth.append(value)
+            else:
+                truth.append(-value)
+
             index += 1
         batches.append((batch, torch.tensor(color).to(device), torch.tensor(truth).to(device)))
 
