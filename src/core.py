@@ -1,6 +1,10 @@
 import math
 import time
+from pathlib import Path
+
 import torch
+
+from src.patches import CHECKPOINTS_PATCH
 
 
 def train(train_data,
@@ -16,6 +20,7 @@ def train(train_data,
           checkpoint=None,
           save_checkpoint_every=25,
           ):
+    Path(CHECKPOINTS_PATCH).mkdir(parents=True, exist_ok=True)
     if checkpoint:
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -63,7 +68,7 @@ def train(train_data,
                           'optimizer': optimizer.state_dict(),
                           'history': checkpoint['history']}
             if save_checkpoint_every > 0 and i % save_checkpoint_every == 0:
-                torch.save(checkpoint, prefix + "-cp-" + str(i) + '.pth')
+                torch.save(checkpoint, CHECKPOINTS_PATCH + prefix + "-cp-" + str(i) + '.pth')
         log([('train', train_loss, train_acc), ('san', val_loss, val_acc), ('test', test_loss, test_acc)],
             passed_time / 1000,
             (i, epoch))
@@ -84,7 +89,7 @@ def iterate(data, model, criterion, accuracy):
     accuracy_sum = 0.0
     with torch.no_grad():
         for batch, color, truth in data:
-            out = model.forward(batch,color).reshape(data.batch_size())
+            out = model.forward(batch, color).reshape(data.batch_size())
             loss = criterion(out, truth)
             accuracy_value = accuracy(out, truth).sum() / data.batch_size()
 
