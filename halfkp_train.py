@@ -6,7 +6,7 @@ from torch import nn
 from src.core import train
 from src.loading.data_loading import wdl_to_cp
 from src.loading.data_loading_halfkp import HalfKpDataset
-from src.models.nnue import NNUE
+from src.models.snnue import SNNUE
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
 
 
@@ -38,7 +38,7 @@ train_dataset = HalfKpDataset(TRAIN_DATASET_PATCH, batch_size, device)
 test_dataset = HalfKpDataset(TEST_DATASET_PATCH, batch_size, device)
 len(train_dataset), len(test_dataset)
 
-model = NNUE()
+model = SNNUE()
 optimizer = torch.optim.SGD(model.classifier.parameters(), lr=lr)
 
 LOAD_FLAG = False
