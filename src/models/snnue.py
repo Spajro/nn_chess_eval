@@ -19,5 +19,5 @@ class SNNUE(nn.Module):
                                         nn.ReLU(),
                                         self.layer3)
 
-    def forward(self, X):
+    def forward(self, X, color):
         return self.classifier.forward(X)
