@@ -1,7 +1,7 @@
 from random import shuffle
 
-from src.data_loading import load_data_from_file
-from src.data_loading import save_dataset_to_csv
+from src.loading.data_loading import load_data_from_file
+from src.loading.data_loading import save_dataset_to_csv
 from src.patches import GAMES_DATASET_PATCH, PUZZLE_DATASET_PATCH, TEST_DATASET_PATCH, TRAIN_DATASET_PATCH
 
 games_dataset = load_data_from_file(GAMES_DATASET_PATCH)

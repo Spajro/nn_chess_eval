@@ -4,9 +4,9 @@ import torch
 from torch import nn
 
 from src.core import train
-from src.data_loading import wdl_to_cp
-from src.data_loading_halfkp import HalfKpDataset
-from src.nnue import NNUE
+from src.loading.data_loading import wdl_to_cp
+from src.loading.data_loading_halfkp import HalfKpDataset
+from src.models.nnue import NNUE
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
 
 

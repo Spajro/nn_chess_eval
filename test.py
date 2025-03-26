@@ -3,9 +3,9 @@ import argparse
 import chess
 import torch
 
-from src.data_loading import load_data_from_file, wdl_to_cp
-from src.data_loading_halfkp import feature_set_to_tensor, board_to_feature_set
-from src.nnue import NNUE
+from src.loading.data_loading import load_data_from_file, wdl_to_cp
+from src.loading.data_loading_halfkp import feature_set_to_tensor, board_to_feature_set
+from src.models.nnue import NNUE
 from src.patches import TEST_DATASET_PATCH
 from src.rdzawa_bestia_eval import evaluate
 

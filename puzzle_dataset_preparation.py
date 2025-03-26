@@ -2,8 +2,8 @@ import sys
 
 import chess
 import concurrent
-from src.data_loading import save_dataset_to_csv
-from src.raw_data_gather import gather
+from src.loading.data_loading import save_dataset_to_csv
+from src.loading.raw_data_gather import gather
 from src.patches import PUZZLE_DATASET_PATCH, PUZZLE_PATCH, STOCKFISH_PATH
 from stockfish import Stockfish
 from concurrent.futures import ThreadPoolExecutor

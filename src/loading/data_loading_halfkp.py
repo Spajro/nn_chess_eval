@@ -1,7 +1,7 @@
 import chess
 import torch
 
-from src.data_loading import cp_to_wdl, load_data_from_file, Dataset
+from src.loading.data_loading import cp_to_wdl, load_data_from_file, Dataset
 
 FEATURES_COUNT = 40960
 

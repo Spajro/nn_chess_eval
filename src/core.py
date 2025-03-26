@@ -96,7 +96,7 @@ def iterate(data, model, criterion, accuracy):
     return loss_average, accuracy_average
 
 
-def log(data: (str, float, float), passed_time: float, epoch: (int, int) = None):
+def log(data: [(str, float, float)], passed_time: float, epoch: (int, int) = None):
     result = ""
     if epoch:
         result += f"Epoch [{epoch[0]}/{epoch[1]}], "

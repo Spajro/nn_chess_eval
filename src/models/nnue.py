@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from src.data_loading_halfkp import FEATURES_COUNT
+from src.loading.data_loading_halfkp import FEATURES_COUNT
 
 M = 2 ** 7
 N = 2 ** 5

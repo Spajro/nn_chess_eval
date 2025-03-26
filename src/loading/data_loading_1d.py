@@ -1,10 +1,10 @@
 import chess
 import torch
 
-from src.data_loading import dataset_to_batches, load_data_from_file, cp_to_wdl, Dataset
+from src.loading.data_loading import cp_to_wdl, load_data_from_file, dataset_to_batches, Dataset
 
 
-class Dataset3D(Dataset):
+class Dataset1D(Dataset):
     def __init__(self, file_path: str, batch_size):
         self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
         self.size = batch_size
@@ -23,14 +23,14 @@ class Dataset3D(Dataset):
 def bitboard_to_tensor(bitboard: int) -> torch.Tensor:
     li = [1.0 if digit == '1' else 0.0 for digit in bin(bitboard)[2:]]
     li = [0.0 for _ in range(64 - len(li))] + li
-    return torch.tensor(li).reshape((8, 8))
+    return torch.tensor(li)
 
 
 def fen_to_tensor(fen: str) -> torch.Tensor:
     board = chess.Board(fen)
     white = board.occupied_co[chess.WHITE]
     black = board.occupied_co[chess.BLACK]
-    return torch.stack([
+    return torch.cat([
         bitboard_to_tensor(white & board.kings),
         bitboard_to_tensor(white & board.queens),
         bitboard_to_tensor(white & board.rooks),
