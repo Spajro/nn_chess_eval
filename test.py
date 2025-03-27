@@ -5,7 +5,7 @@ import torch
 
 from src.loading.data_loading import load_data_from_file, wdl_to_cp
 from src.loading.data_loading_halfkp import feature_set_to_tensor, board_to_feature_set
-from src.models.nnue import NNUE
+from src.models.models import get_model
 from src.patches import TEST_DATASET_PATCH
 from src.rdzawa_bestia_eval import evaluate
 
@@ -52,14 +52,16 @@ def evaluate_model(model, board, device):
 
 parser = argparse.ArgumentParser(description='Halfkp NNUE test')
 parser.add_argument('name', type=str, help='checkpoint to test')
+parser.add_argument('--model', type=str, default="nnue", help='model to train')
 parser.add_argument('--device', type=str, default='cpu', help='cuda:X or cpu')
 args = parser.parse_args()
 
+model_name = args.model
 name = args.name
 device = args.device
 
 checkpoint = torch.load(name)
-model = NNUE().to(device)
+model = get_model(model_name).to(device)
 model.load_state_dict(checkpoint['model'])
 data = load_data_from_file(TEST_DATASET_PATCH)
 

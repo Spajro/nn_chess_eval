@@ -6,7 +6,7 @@ from torch import nn
 from src.core import train
 from src.loading.data_loading import wdl_to_cp
 from src.loading.data_loading_halfkp import HalfKpDataset
-from src.models.snnue import SNNUE
+from src.models.models import get_model
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
 
 
@@ -15,6 +15,7 @@ def accuracy(out, truth):
 
 
 parser = argparse.ArgumentParser(description='Halfkp NNUE training')
+parser.add_argument('--model', type=str, default="nnue", help='model to train')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--epochs', type=int, default=300, help='number of epochs')
 parser.add_argument('--batch_size', type=int, default=64, help='batch size')
@@ -25,6 +26,7 @@ parser.add_argument('--load-cp', type=str, help='name of checkpoint to load')
 parser.add_argument('--san-check', action='store_true', help='test on training set after every epoch')
 args = parser.parse_args()
 
+model_name = args.model
 lr = args.lr
 epochs = args.epochs
 batch_size = args.batch_size
@@ -38,7 +40,7 @@ train_dataset = HalfKpDataset(TRAIN_DATASET_PATCH, batch_size, device)
 test_dataset = HalfKpDataset(TEST_DATASET_PATCH, batch_size, device)
 len(train_dataset), len(test_dataset)
 
-model = SNNUE()
+model = get_model(model_name).to(device)
 optimizer = torch.optim.SGD(model.classifier.parameters(), lr=lr)
 
 LOAD_FLAG = False
