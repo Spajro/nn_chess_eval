@@ -2,6 +2,7 @@ import argparse
 
 import chess
 import torch
+from torch import nn
 
 from src.loading.data_loading import load_data_from_file, wdl_to_cp
 from src.loading.data_loading_halfkp import feature_set_to_tensor, board_to_feature_set
@@ -45,9 +46,9 @@ def log(result, count, result1, count1, result2, count2, result3, count3, result
     print(str(P3) + ',inf', result4 / count4, count4)
 
 
-def evaluate_model(model, board, device):
+def evaluate_model(model: nn.Module, board: chess.Board, device: str):
     tensor = feature_set_to_tensor(board_to_feature_set(board), device)
-    return model.forward(tensor)
+    return model.forward(tensor,board.turn)
 
 
 parser = argparse.ArgumentParser(description='Halfkp NNUE test')
