@@ -23,54 +23,6 @@ class HalfKpDataset(Dataset):
         return self.size
 
 
-def gather_pieces_from_board(board: chess.Board):
-    result = []
-    for square in chess.SQUARES:
-        opt_piece = board.piece_at(square)
-        if opt_piece is not None:
-            color = board.color_at(square)
-            result.append((opt_piece.piece_type, color, square))
-    return result
-
-
-def generate_indexes(piece_type: chess.PieceType,
-                     piece_color: chess.Color,
-                     piece_square: chess.Square,
-                     white_king: chess.Square,
-                     black_king: chess.Square):
-    white_idx = piece_square + (white_king * 10 + piece_type * 2 + piece_color) * 64
-    black_idx = piece_square + (black_king * 10 + piece_type * 2 + (not piece_color)) * 64
-    return white_idx, black_idx
-
-
-def board_to_feature_set(board: chess.Board):
-    white_king = board.king(chess.WHITE)
-    black_king = board.king(chess.BLACK)
-    features = []
-
-    for (piece_type, piece_color, piece_square) in gather_pieces_from_board(board):
-        if piece_type != chess.KING:
-            (white_idx, black_idx) = generate_indexes(piece_type, piece_color, piece_square, white_king, black_king)
-            features.append(white_idx)
-            features.append(black_idx)
-    return features
-
-
-def feature_set_to_tensor(features, device):
-    tensor = torch.zeros(2 * FEATURES_COUNT).to(device)
-    for feature in features:
-        tensor[feature] = 1
-    return tensor
-
-
-def fen_to_stm(fen: str) -> chess.Color:
-    return 'w' in fen
-
-
-def data_to_tensors(data: (str, float)) -> ([int], chess.Color, float):
-    return [(board_to_feature_set(chess.Board(fen)), fen_to_stm(fen), cp_to_wdl(value)) for fen, value in data]
-
-
 def dataset_to_batches(dataset: [([int], float)],
                        batch_size: int,
                        device: str
@@ -86,8 +38,9 @@ def dataset_to_batches(dataset: [([int], float)],
             fen = dataset[index][0]
             value = dataset[index][1]
             stm = fen_to_stm(fen)
+            white_features, black_features = board_to_feature_set(chess.Board(fen))
 
-            batch.append(board_to_feature_set(chess.Board(fen)))
+            batch.append((white_features, black_features))
             color.append(stm)
             truth.append(cp_to_wdl(value))
 
@@ -97,8 +50,56 @@ def dataset_to_batches(dataset: [([int], float)],
     return batches
 
 
-def batch_to_tensors(batch: [[int]], device) -> torch.Tensor:
+def fen_to_stm(fen: str) -> chess.Color:
+    return 'w' in fen
+
+
+def batch_to_tensors(batch: [[int], [int]], device) -> (torch.Tensor, torch.Tensor):
+    white_result = []
+    black_result = []
+    for white_features, black_features in batch:
+        white_result.append(features_to_tensor(white_features, device))
+        black_result.append(features_to_tensor(black_features, device))
+    return torch.stack(white_result).to(device)
+
+
+def features_to_tensor(features, device):
+    tensor = torch.zeros(FEATURES_COUNT).to(device)
+    for feature in features:
+        tensor[feature] = 1
+    return tensor
+
+
+def board_to_feature_set(board: chess.Board) -> ([int], [int]):
+    white_king = board.king(chess.WHITE)
+    black_king = board.king(chess.BLACK)
+    white_features = []
+    black_features = []
+
+    for (piece_type, piece_color, piece_square) in gather_pieces_from_board(board):
+        if piece_type != chess.KING:
+            (white_idx, black_idx) = generate_indexes(piece_type, piece_color, piece_square, white_king, black_king)
+            white_features.append(white_idx)
+            black_features.append(black_idx)
+    return white_features, black_features
+
+
+def gather_pieces_from_board(board: chess.Board):
     result = []
-    for features in batch:
-        result.append(feature_set_to_tensor(features, device))
-    return torch.stack(result).to(device)
+    for square in chess.SQUARES:
+        opt_piece = board.piece_at(square)
+        if opt_piece is not None:
+            color = board.color_at(square)
+            result.append((opt_piece.piece_type, color, square))
+    return result
+
+
+def generate_indexes(piece_type: chess.PieceType,
+                     piece_color: chess.Color,
+                     piece_square: chess.Square,
+                     white_king: chess.Square,
+                     black_king: chess.Square):
+    white_idx = piece_square + (white_king * 10 + (piece_type - 1) * 2 + piece_color) * 64
+    black_idx = piece_square + (black_king * 10 + (piece_type - 1) * 2 + (not piece_color)) * 64
+
+    return white_idx, black_idx

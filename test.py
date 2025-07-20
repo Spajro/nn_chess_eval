@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 from src.loading.data_loading import load_data_from_file, wdl_to_cp
-from src.loading.data_loading_halfkp import feature_set_to_tensor, board_to_feature_set
+from src.loading.data_loading_halfkp import features_to_tensor, board_to_feature_set
 from src.models.models import get_model
 from src.patches import TEST_DATASET_PATCH
 from src.rdzawa_bestia_eval import evaluate
@@ -47,8 +47,16 @@ def log(result, count, result1, count1, result2, count2, result3, count3, result
 
 
 def evaluate_model(model: nn.Module, board: chess.Board, device: str):
-    tensor = feature_set_to_tensor(board_to_feature_set(board), device)
-    return model.forward(tensor,board.turn)
+    tensor = features_to_tensor(board_to_feature_set(board), device)
+    return model.forward(tensor, board.turn)
+
+
+def eval_fen(model, fen: str, device):
+    white_features, black_features = board_to_feature_set(chess.Board(fen))
+    white_tensor = features_to_tensor(white_features, device).reshape(1, -1)
+    black_tensor = features_to_tensor(black_features, device).reshape(1, -1)
+    color = torch.tensor(chess.Board(fen).turn).to(device)
+    return wdl_to_cp(model.forward(white_tensor, black_tensor, color)).item()
 
 
 parser = argparse.ArgumentParser(description='Halfkp NNUE test')
@@ -65,6 +73,17 @@ checkpoint = torch.load(name)
 model = get_model(model_name).to(device)
 model.load_state_dict(checkpoint['model'])
 data = load_data_from_file(TEST_DATASET_PATCH)
+torch.set_printoptions(sci_mode=False)
+
+fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq *- 0 1"
+fen2 = "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - 0 1"
+fen3 = "rnbqkbnr/pp1ppppp/2p5/8/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - 0 1"
+fen4 = "rnbqkbnr/pp1ppppp/2p5/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 1"
+print("BENCHMARKS:")
+print(eval_fen(model, fen1, device), fen1)
+print(eval_fen(model, fen2, device), fen2)
+print(eval_fen(model, fen3, device), fen3)
+print(eval_fen(model, fen4, device), fen4)
 
 print("RDZAWA BESTIA")
 r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(evaluate)
