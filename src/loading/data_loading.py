@@ -15,11 +15,11 @@ class Dataset:
 
 
 def cp_to_wdl(value: int) -> float:
-    return value / 410
+    return torch.sigmoid(torch.tensor(value) / 410).item()
 
 
-def wdl_to_cp(value):
-    return value * 410
+def wdl_to_cp(value) -> torch.Tensor:
+    return torch.logit(value) * 410
 
 
 def save_dataset_to_csv(dataset, filename):

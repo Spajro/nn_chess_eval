@@ -47,8 +47,10 @@ def log(result, count, result1, count1, result2, count2, result3, count3, result
 
 
 def evaluate_model(model: nn.Module, board: chess.Board, device: str):
-    tensor = features_to_tensor(board_to_feature_set(board), device)
-    return model.forward(tensor, board.turn)
+    white_features, black_features = board_to_feature_set(board)
+    white_tensor = features_to_tensor(white_features, device)
+    black_tensor = features_to_tensor(black_features, device)
+    return model.forward((white_tensor, black_tensor), torch.tensor(board.turn))
 
 
 def eval_fen(model, fen: str, device):
@@ -56,7 +58,7 @@ def eval_fen(model, fen: str, device):
     white_tensor = features_to_tensor(white_features, device).reshape(1, -1)
     black_tensor = features_to_tensor(black_features, device).reshape(1, -1)
     color = torch.tensor(chess.Board(fen).turn).to(device)
-    return wdl_to_cp(model.forward(white_tensor, black_tensor, color)).item()
+    return wdl_to_cp(model.forward((white_tensor, black_tensor), color)).item()
 
 
 parser = argparse.ArgumentParser(description='Halfkp NNUE test')
@@ -75,7 +77,7 @@ model.load_state_dict(checkpoint['model'])
 data = load_data_from_file(TEST_DATASET_PATCH)
 torch.set_printoptions(sci_mode=False)
 
-fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq *- 0 1"
+fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 fen2 = "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - 0 1"
 fen3 = "rnbqkbnr/pp1ppppp/2p5/8/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - 0 1"
 fen4 = "rnbqkbnr/pp1ppppp/2p5/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 1"

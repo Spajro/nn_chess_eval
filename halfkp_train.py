@@ -11,7 +11,7 @@ from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
 
 
 def accuracy(out, truth):
-    return wdl_to_cp(torch.abs(truth - out))
+    return torch.abs(wdl_to_cp(truth) - wdl_to_cp(out))
 
 
 parser = argparse.ArgumentParser(description='Halfkp NNUE training')
@@ -38,7 +38,6 @@ san_check = args.san_check
 
 train_dataset = HalfKpDataset(TRAIN_DATASET_PATCH, batch_size, device)
 test_dataset = HalfKpDataset(TEST_DATASET_PATCH, batch_size, device)
-len(train_dataset), len(test_dataset)
 
 model = get_model(model_name).to(device)
 optimizer = torch.optim.SGD(model.classifier.parameters(), lr=lr)
