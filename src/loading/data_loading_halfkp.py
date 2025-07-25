@@ -42,7 +42,10 @@ def dataset_to_batches(dataset: [([int], float)],
 
             batch.append((white_features, black_features))
             color.append(stm)
-            truth.append(cp_to_wdl(value))
+            if stm == chess.WHITE:
+                truth.append(cp_to_wdl(value))
+            else:
+                truth.append(cp_to_wdl(-1.0 * value))
 
             index += 1
         batches.append((batch, torch.tensor(color).to(device), torch.tensor(truth).to(device)))

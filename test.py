@@ -78,9 +78,9 @@ data = load_data_from_file(TEST_DATASET_PATCH)
 torch.set_printoptions(sci_mode=False)
 
 fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-fen2 = "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - 0 1"
+fen2 = "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq - 0 1"
 fen3 = "rnbqkbnr/pp1ppppp/2p5/8/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - 0 1"
-fen4 = "rnbqkbnr/pp1ppppp/2p5/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 1"
+fen4 = "rnbqkbnr/pp1ppppp/2p5/8/2PP4/8/PP2PPPP/RNBQKBNR b KQkq - 0 1"
 print("BENCHMARKS:")
 print(eval_fen(model, fen1, device), fen1)
 print(eval_fen(model, fen2, device), fen2)
