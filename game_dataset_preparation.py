@@ -11,21 +11,23 @@ from stockfish import Stockfish
 from concurrent.futures import ThreadPoolExecutor
 
 
-def load(k: int) -> [chess.pgn.GameNode]:
-    pgn = open(GAMES_PATCH, encoding="utf-8")
-    result = []
+def generate_dataset(size, stockfish_path) -> [(str, float)]:
+    t1 = time.time()
+    fens = games_to_unique_fens(load(size))
+    print("Fens count: ", len(fens))
+    filtered_fens = filter_non_quiet_position(fens)
+    print("Filtered Fens count: ", len(filtered_fens))
+    print("Fen gather time: ", time.time() - t1)
+    t2 = time.time()
+    data = [(f, e["value"]) for f, e in evaluate_fens(filtered_fens, stockfish_path) if e["type"] == "cp"]
+    print("Eval time: ", time.time() - t2)
+    return data
 
-    game = chess.pgn.read_game(pgn)
-    count = 0
-    while game is not None and count < k:
-        if game.variations:
-            result.append(game)
-        game = chess.pgn.read_game(pgn)
-        count += 1
 
-    print("Games count: ", count)
-    pgn.close()
-    return result
+def games_to_unique_fens(games: [chess.pgn.GameNode]) -> {str}:
+    return {fen
+            for game in games
+            for fen in generate_fen_for_moves(generate_moves_for_games(game))}
 
 
 def generate_moves_for_games(game: chess.pgn.GameNode) -> [str]:
@@ -45,10 +47,8 @@ def generate_fen_for_moves(moves: [str]) -> [str]:
     return result
 
 
-def games_to_unique_fens(games: [chess.pgn.GameNode]) -> {str}:
-    return {fen
-            for game in games
-            for fen in generate_fen_for_moves(generate_moves_for_games(game))}
+def filter_non_quiet_position(fens: {str}) -> {str}:
+    return [fen for fen in fens if is_quiet(fen)]
 
 
 def is_quiet(fen: str) -> bool:
@@ -59,8 +59,10 @@ def is_quiet(fen: str) -> bool:
     return True
 
 
-def filter_non_quiet_position(fens: {str}) -> {str}:
-    return [fen for fen in fens if is_quiet(fen)]
+def evaluate_fens(fens: [str], stockfish_path: str) -> [(str, dict)]:
+    with concurrent.futures.ThreadPoolExecutor(10) as executor:
+        futures = [(fen, executor.submit(evaluate_fen, fen, stockfish_path)) for fen in fens]
+    return [(f, e.result()) for f, e in futures]
 
 
 def evaluate_fen(fen: str, stockfish_path: str) -> dict:
@@ -69,23 +71,21 @@ def evaluate_fen(fen: str, stockfish_path: str) -> dict:
     return stockfish.get_evaluation()
 
 
-def evaluate_fens(fens: [str], stockfish_path: str) -> [(str, dict)]:
-    with concurrent.futures.ThreadPoolExecutor(10) as executor:
-        futures = [(fen, executor.submit(evaluate_fen, fen, stockfish_path)) for fen in fens]
-    return [(f, e.result()) for f, e in futures]
+def load(k: int) -> [chess.pgn.GameNode]:
+    pgn = open(GAMES_PATCH, encoding="utf-8")
+    result = []
 
+    game = chess.pgn.read_game(pgn)
+    count = 0
+    while game is not None and count < k:
+        if game.variations:
+            result.append(game)
+        game = chess.pgn.read_game(pgn)
+        count += 1
 
-def generate_dataset(size, stockfish_path) -> [(str, float)]:
-    t1 = time.time()
-    fens = games_to_unique_fens(load(size))
-    print("Fens count: ", len(fens))
-    filtered_fens = filter_non_quiet_position(fens)
-    print("Filtered Fens count: ", len(filtered_fens))
-    print("Fen gather time: ", time.time() - t1)
-    t2 = time.time()
-    data = [(f, e["value"]) for f, e in evaluate_fens(filtered_fens, stockfish_path) if e["type"] == "cp"]
-    print("Eval time: ", time.time() - t2)
-    return data
+    print("Games count: ", count)
+    pgn.close()
+    return result
 
 
 if len(sys.argv) < 2:
