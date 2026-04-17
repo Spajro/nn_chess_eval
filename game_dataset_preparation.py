@@ -1,12 +1,15 @@
+import csv
+import multiprocessing
 import sys
 import time
 
 import chess
 import chess.pgn
 import concurrent
+
 from src.loading.data_loading import save_dataset_to_csv
 from src.loading.raw_data_gather import gather
-from src.patches import GAMES_DATASET_PATCH, GAMES_PATCH, STOCKFISH_PATH
+from src.patches import GAMES_DATASET_PATCH, GAMES_PATCH, STOCKFISH_PATH, FENS_PATH
 from stockfish import Stockfish
 from concurrent.futures import ThreadPoolExecutor
 
@@ -18,10 +21,10 @@ def generate_dataset(size, stockfish_path) -> [(str, float)]:
     filtered_fens = filter_non_quiet_position(fens)
     print("Filtered Fens count: ", len(filtered_fens))
     print("Fen gather time: ", time.time() - t1)
+    save_dataset_to_csv(filtered_fens, FENS_PATH)
     t2 = time.time()
-    data = [(f, e["value"]) for f, e in evaluate_fens(filtered_fens, stockfish_path) if e["type"] == "cp"]
+    evaluate_fens(filtered_fens, stockfish_path)
     print("Eval time: ", time.time() - t2)
-    return data
 
 
 def games_to_unique_fens(games: [chess.pgn.GameNode]) -> {str}:
@@ -60,15 +63,30 @@ def is_quiet(fen: str) -> bool:
 
 
 def evaluate_fens(fens: [str], stockfish_path: str) -> [(str, dict)]:
+    queue = multiprocessing.Queue()
     with concurrent.futures.ThreadPoolExecutor(10) as executor:
-        futures = [(fen, executor.submit(evaluate_fen, fen, stockfish_path)) for fen in fens]
-    return [(f, e.result()) for f, e in futures]
+        for fen in fens:
+            executor.submit(evaluate_fen, fen, stockfish_path, queue)
+        with open(GAMES_DATASET_PATCH, "a", newline='') as file:
+            counter = 0
+            writer = csv.writer(file)
+            t0 = time.time()
+            while counter < len(fens):
+                counter += 1
+                writer.writerow(queue.get())
+                t1 = time.time()
+                eta = (t1 - t0) * (len(fens) - counter) / counter
+                print(str(counter) + "/" + str(len(fens)) + " t:" + str(t1 - t0) + " eta: " + str(eta))
 
 
-def evaluate_fen(fen: str, stockfish_path: str) -> dict:
+def evaluate_fen(fen: str, stockfish_path: str, queue: multiprocessing.Queue):
     stockfish = Stockfish(stockfish_path)
     stockfish.set_fen_position(fen)
-    return stockfish.get_evaluation()
+    e = stockfish.get_evaluation()
+    if e["type"] == "cp":
+        queue.put((fen, e["value"]))
+    else:
+        queue.put((fen, "M" + str(e["value"])))
 
 
 def load(k: int) -> [chess.pgn.GameNode]:
@@ -97,7 +115,4 @@ gather("https://database.lichess.org/standard",
        GAMES_PATCH)
 
 SIZE = int(sys.argv[1])
-dataset = generate_dataset(SIZE, STOCKFISH_PATH)
-print("Dataset size: ", len(dataset))
-
-save_dataset_to_csv(dataset, GAMES_DATASET_PATCH)
+generate_dataset(SIZE, STOCKFISH_PATH)
