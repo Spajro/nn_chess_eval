@@ -13,7 +13,7 @@ from src.rdzawa_bestia_eval import evaluate
 P1, P2, P3 = 100, 300, 500
 
 
-def test(evaluate):
+def test(evaluate,data):
     result, result1, result2, result3, result4 = 0, 0, 0, 0, 0,
     count, count1, count2, count3, count4 = 0, 0, 0, 0, 0,
     for fen, val in data:
@@ -88,9 +88,9 @@ print(eval_fen(model, fen3, device), fen3)
 print(eval_fen(model, fen4, device), fen4)
 
 print("RDZAWA BESTIA")
-r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(evaluate)
+r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(evaluate,data)
 log(r, c, r1, c1, r2, c2, r3, c3, r4, c4)
 
 print("CHECKPOINT MODEL")
-r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(lambda x: wdl_to_cp(evaluate_model(model, x, device)).item())
+r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(lambda x: wdl_to_cp(evaluate_model(model, x, device)).item(),data)
 log(r, c, r1, c1, r2, c2, r3, c3, r4, c4)

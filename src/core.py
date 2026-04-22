@@ -107,5 +107,17 @@ def log(data: [(str, float, float)], passed_time: float, epoch: (int, int) = Non
         result += f"Epoch [{epoch[0]}/{epoch[1]}], "
     for text, loss, acc in data:
         result += f"{text}: {loss:.5f} {acc:.2f}, "
-    result += f" time: {passed_time:.2f}s"
+    result += f" time: {format_time(passed_time)}"
     print(result)
+
+
+def format_time(seconds: float) -> str:
+    if seconds < 60:
+        return "00h 00m " + str(int(seconds)) + "s"
+    minutes = math.floor(seconds / 60)
+    seconds = math.floor(seconds) - minutes * 60
+    if minutes < 60:
+        return "00h " + str(int(minutes)) + "m " + str(seconds) + "s"
+    hours = math.floor(minutes / 60)
+    minutes = math.floor(minutes - (60 * hours))
+    return str(int(hours)) + "h " + str(minutes) + "m " + str(seconds) + "s"

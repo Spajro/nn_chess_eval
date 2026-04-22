@@ -4,6 +4,7 @@ import os.path
 import time
 import concurrent
 
+from src.core import format_time
 from src.patches import GAMES_DATASET_PATCH, FENS_PATH, STOCKFISH_PATH
 from stockfish import Stockfish
 from concurrent.futures import ThreadPoolExecutor
@@ -47,7 +48,8 @@ with concurrent.futures.ThreadPoolExecutor(20) as executor:
             counter += 1
             writer.writerow(queue.get())
             t1 = time.time()
-            eta = (t1 - t0) * (len(fens) - counter) / counter
+            deltat = t1 - t0
+            eta = deltat * (len(fens) - counter) / counter
             if counter % 1000 == 0:
-                print(str(counter) + "/" + str(len(fens)) + " t:" + str(t1 - t0) + " eta: " + str(eta))
+                print(str(counter) + "/" + str(len(fens)) + " t:" + format_time(deltat) + " eta: " + format_time(eta))
 print("Eval time: ", time.time() - t0)
