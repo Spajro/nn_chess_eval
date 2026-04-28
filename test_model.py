@@ -10,40 +10,48 @@ from src.models.models import get_model
 from src.patches import TEST_DATASET_PATCH
 from src.rdzawa_bestia_eval import evaluate
 
-P1, P2, P3 = 100, 300, 500
 
+def test(evaluate, data, ranges):
+    results = []
+    counts = []
+    for _ in range(len(ranges) + 1):
+        results.append(0)
+        counts.append(0)
 
-def test(evaluate,data):
-    result, result1, result2, result3, result4 = 0, 0, 0, 0, 0,
-    count, count1, count2, count3, count4 = 0, 0, 0, 0, 0,
     for fen, val in data:
         board = chess.Board(fen)
         r = evaluate(board)
         dif = abs(r - val)
-        result += dif
-        count += 1
 
-        if abs(val) < P1:
-            result1 += dif
-            count1 += 1
-        elif abs(val) < P2:
-            result2 += dif
-            count2 += 1
-        elif abs(val) < P3:
-            result3 += dif
-            count3 += 1
+        out_of_range=True
+        for i in range(len(ranges)):
+            if ranges[i] > abs(val):
+                results[i] += dif
+                counts[i] += 1
+                out_of_range = False
+                break
+
+        if out_of_range:
+            results[len(ranges)] += dif
+            counts[len(ranges)] += 1
+
+    return results, counts
+
+
+def log(ranges, results, counts):
+    print('F      ', sum(results) / sum(counts), sum(counts))
+
+    last_range = 0
+    for i in range(len(ranges)):
+        if counts[i] ==0:
+            print(str(last_range) + ' - ' + str(ranges[i]), 0, counts[i])
         else:
-            result4 += dif
-            count4 += 1
-    return result, count, result1, count1, result2, count2, result3, count3, result4, count4
-
-
-def log(result, count, result1, count1, result2, count2, result3, count3, result4, count4):
-    print('F      ', result / count, count)
-    print('0,' + str(P1), result1 / count1, count1)
-    print(str(P1) + ',' + str(P2), result2 / count2, count2)
-    print(str(P2) + ',' + str(P3), result3 / count3, count3)
-    print(str(P3) + ',inf', result4 / count4, count4)
+            print(str(last_range) + ' - ' + str(ranges[i]), results[i] / counts[i], counts[i])
+        last_range= ranges[i]
+    if counts[len(ranges)] == 0:
+        print(str(last_range) + ' - ' + 'inf', 0, counts[len(ranges)])
+    else:
+        print(str(last_range) + ' - ' + 'inf', results[len(ranges)] / counts[len(ranges)], counts[len(ranges)])
 
 
 def evaluate_model(model: nn.Module, board: chess.Board, device: str):
@@ -87,10 +95,12 @@ print(eval_fen(model, fen2, device), fen2)
 print(eval_fen(model, fen3, device), fen3)
 print(eval_fen(model, fen4, device), fen4)
 
+rngs = [100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500]
+
 print("RDZAWA BESTIA")
-r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(evaluate,data)
-log(r, c, r1, c1, r2, c2, r3, c3, r4, c4)
+r1,c1=test(evaluate, data,rngs)
+log(rngs,r1,c1 )
 
 print("CHECKPOINT MODEL")
-r, c, r1, c1, r2, c2, r3, c3, r4, c4 = test(lambda x: wdl_to_cp(evaluate_model(model, x, device)).item(),data)
-log(r, c, r1, c1, r2, c2, r3, c3, r4, c4)
+r2,c2=test(lambda x: wdl_to_cp(evaluate_model(model, x, device)).item(), data,rngs)
+log(rngs,r2,c2)

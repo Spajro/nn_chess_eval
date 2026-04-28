@@ -32,7 +32,7 @@ def save_dataset_to_csv(dataset, filename):
 def load_data_from_file(file_path: str) -> [(str, float)]:
     with open(file_path, 'r') as f:
         reader = csv.reader(f, delimiter=',')
-        return [(fen, float(val)) for fen, val in reader]
+        return [(fen, float(val)) for fen, val in reader if val[0]!='M']
 
 
 def dataset_to_batches(dataset: [(torch.Tensor, torch.Tensor)], batch_size) -> [(torch.Tensor, torch.Tensor)]:
