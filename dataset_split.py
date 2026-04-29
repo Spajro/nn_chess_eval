@@ -1,10 +1,10 @@
 from random import shuffle
 
-from src.loading.data_loading import load_data_from_file
-from src.loading.data_loading import save_dataset_to_csv
+from src.loading.data_loading import load_dataset_with_stats, save_dataset_with_stats
+
 from src.patches import GAMES_DATASET_PATCH, TEST_DATASET_PATCH, TRAIN_DATASET_PATCH
 
-games_dataset = load_data_from_file(GAMES_DATASET_PATCH)
+games_dataset = load_dataset_with_stats(GAMES_DATASET_PATCH)
 
 TEST_SIZE = 0.1
 
@@ -16,5 +16,5 @@ test_dataset = games_dataset[games_index:]
 print(len(train_dataset), len(test_dataset))
 
 
-save_dataset_to_csv(train_dataset, TRAIN_DATASET_PATCH)
-save_dataset_to_csv(test_dataset, TEST_DATASET_PATCH)
+save_dataset_with_stats(train_dataset, TRAIN_DATASET_PATCH)
+save_dataset_with_stats(test_dataset, TEST_DATASET_PATCH)

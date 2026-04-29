@@ -4,7 +4,7 @@ import chess
 import torch
 from torch import nn
 
-from src.loading.data_loading import load_data_from_file, wdl_to_cp
+from src.loading.data_loading import load_dataset, wdl_to_cp
 from src.loading.data_loading_halfkp import features_to_tensor, board_to_feature_set
 from src.models.models import get_model
 from src.patches import TEST_DATASET_PATCH
@@ -82,7 +82,7 @@ device = args.device
 checkpoint = torch.load(name)
 model = get_model(model_name).to(device)
 model.load_state_dict(checkpoint['model'])
-data = load_data_from_file(TEST_DATASET_PATCH)
+data = load_dataset(TEST_DATASET_PATCH)
 torch.set_printoptions(sci_mode=False)
 
 fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"

@@ -2,7 +2,7 @@ import sys
 
 import chess
 import concurrent
-from src.loading.data_loading import save_dataset_to_csv
+from src.loading.data_loading import save_dataset
 from src.loading.raw_data_gather import gather
 from src.patches import PUZZLE_DATASET_PATCH, PUZZLE_PATCH, STOCKFISH_PATH
 from stockfish import Stockfish
@@ -79,4 +79,4 @@ SIZE = int(sys.argv[1])
 dataset = generate_dataset(SIZE, STOCKFISH_PATH)
 print("Dataset size: ", len(dataset))
 
-save_dataset_to_csv(dataset, PUZZLE_DATASET_PATCH)
+save_dataset(dataset, PUZZLE_DATASET_PATCH)

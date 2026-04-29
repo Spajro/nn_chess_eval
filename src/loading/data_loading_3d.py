@@ -1,12 +1,12 @@
 import chess
 import torch
 
-from src.loading.data_loading import dataset_to_batches, load_data_from_file, cp_to_wdl, Dataset
+from src.loading.data_loading import dataset_to_batches, load_dataset, cp_to_wdl, Dataset
 
 
 class Dataset3D(Dataset):
     def __init__(self, file_path: str, batch_size):
-        self.data = dataset_to_batches(data_to_tensors(load_data_from_file(file_path)), batch_size)
+        self.data = dataset_to_batches(data_to_tensors(load_dataset(file_path)), batch_size)
         self.size = batch_size
 
     def __iter__(self):

@@ -1,24 +1,26 @@
 import math
 import time
 from pathlib import Path
+from typing import Callable
 
 import torch
 
+from src.loading.data_loading import Dataset
 from src.patches import CHECKPOINTS_PATCH
 
 
-def train(train_data,
-          test_data,
+def train(train_data: Dataset,
+          test_data: Dataset,
           model,
           criterion,
-          optimizer,
-          accuracy,
-          epoch,
-          device,
-          prefix="train",
-          san_check=True,
-          checkpoint=None,
-          save_checkpoint_every=25,
+          optimizer: torch.optim.Optimizer,
+          accuracy: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+          epoch: int,
+          device: str,
+          prefix: str = "train",
+          san_check: bool = True,
+          checkpoint: dict = None,
+          save_checkpoint_every: int = 25,
           ):
     Path(CHECKPOINTS_PATCH).mkdir(parents=True, exist_ok=True)
     if checkpoint:
@@ -39,7 +41,7 @@ def train(train_data,
         time_started = time.time() * 1000
         loss_sum = 0.0
         accuracy_sum = 0.0
-        for batch, color, truth in train_data:
+        for batch, color, interpolation, truth in train_data:
             optimizer.zero_grad()
             out = model.forward(batch, color).reshape(train_data.batch_size())
             loss = criterion(out, truth)
@@ -101,7 +103,7 @@ def iterate(data, model, criterion, accuracy):
     return loss_average, accuracy_average
 
 
-def log(data: [(str, float, float)], passed_time: float, epoch: (int, int) = None):
+def log(data: list[tuple[str, float, float]], passed_time: float, epoch: tuple[int, int] = None):
     result = ""
     if epoch:
         result += f"Epoch [{epoch[0]}/{epoch[1]}], "

@@ -1,20 +1,20 @@
 import chess
-import torch
 
-from src.loading.data_loading import cp_to_wdl, load_data_from_file, Dataset
+from src.loading.data_loading import cp_to_wdl, Dataset, load_dataset_with_stats
+from torch import Tensor, stack, zeros
 
 FEATURES_COUNT = 40960
 
 
 class HalfKpDataset(Dataset):
-    def __init__(self, file_path: str, batch_size, device):
-        self.data = dataset_to_batches(load_data_from_file(file_path), batch_size, device)
+    def __init__(self, file_path: str, batch_size: int, device: str):
+        self.data = dataset_to_batches(load_dataset_with_stats(file_path), batch_size, device)
         self.size = batch_size
         self.device = device
 
     def __iter__(self):
-        for batch, color, truth in self.data:
-            yield batch_to_tensors(batch, self.device), color, truth
+        for batch, color,stats, truth in self.data:
+            yield batch_to_tensors(batch, self.device), color,stats, truth
 
     def __len__(self):
         return len(self.data)
@@ -23,32 +23,39 @@ class HalfKpDataset(Dataset):
         return self.size
 
 
-def dataset_to_batches(dataset: [([int], float)],
+def dataset_to_batches(dataset: list[tuple[str, tuple[int, int, int], str]],
                        batch_size: int,
                        device: str
-                       ) -> [(torch.Tensor, torch.Tensor, torch.Tensor)]:
+                       ) -> list[tuple[Tensor, Tensor, Tensor, Tensor]]:
     batches = []
     index = 0
     while index + batch_size <= len(dataset):
         batch = []
         color = []
+        interpolation = []
         truth = []
         max_index = index + batch_size
         while index < max_index:
             fen = dataset[index][0]
-            value = dataset[index][1]
+            stats = dataset[index][1]
+            value = dataset[index][2]
+            if value[0] == 'M':  # TODO
+                continue
+            else:
+                value = float(value)
             stm = fen_to_stm(fen)
             white_features, black_features = board_to_feature_set(chess.Board(fen))
 
             batch.append((white_features, black_features))
             color.append(stm)
+            interpolation.append(stats[0] / (stats[0] + stats[1] + stats[2]))
             if stm == chess.WHITE:
                 truth.append(cp_to_wdl(value))
             else:
                 truth.append(cp_to_wdl(-1.0 * value))
 
             index += 1
-        batches.append((batch, torch.tensor(color).to(device), torch.tensor(truth).to(device)))
+        batches.append((batch, Tensor(color).to(device), Tensor(interpolation).to(device), Tensor(truth).to(device)))
 
     return batches
 
@@ -57,23 +64,23 @@ def fen_to_stm(fen: str) -> chess.Color:
     return 'w' in fen
 
 
-def batch_to_tensors(batch: [[int], [int]], device) -> (torch.Tensor, torch.Tensor):
+def batch_to_tensors(batch: list[tuple[list[int], list[int]]], device: str) -> tuple[Tensor, Tensor]:
     white_result = []
     black_result = []
     for white_features, black_features in batch:
         white_result.append(features_to_tensor(white_features, device))
         black_result.append(features_to_tensor(black_features, device))
-    return torch.stack(white_result).to(device)
+    return stack(white_result).to(device) #TODO, stack(black_result).to(device)
 
 
-def features_to_tensor(features, device):
-    tensor = torch.zeros(FEATURES_COUNT).to(device)
+def features_to_tensor(features: list[int], device: str) -> Tensor:
+    tensor = zeros(FEATURES_COUNT).to(device)
     for feature in features:
         tensor[feature] = 1
     return tensor
 
 
-def board_to_feature_set(board: chess.Board) -> ([int], [int]):
+def board_to_feature_set(board: chess.Board) -> tuple[list[int], list[int]]:
     white_king = board.king(chess.WHITE)
     black_king = board.king(chess.BLACK)
     white_features = []
