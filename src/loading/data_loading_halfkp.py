@@ -1,7 +1,7 @@
 import chess
 
 from src.loading.data_loading import cp_to_wdl, Dataset, load_dataset_with_stats
-from torch import Tensor, stack, zeros
+from torch import Tensor, zeros
 
 FEATURES_COUNT = 40960
 
@@ -13,8 +13,8 @@ class HalfKpDataset(Dataset):
         self.device = device
 
     def __iter__(self):
-        for batch, color,stats, truth in self.data:
-            yield batch_to_tensors(batch, self.device), color,stats, truth
+        for batch, color, stats, truth in self.data:
+            yield batch_to_tensors(batch, self.device), color, stats, truth
 
     def __len__(self):
         return len(self.data)
@@ -26,7 +26,7 @@ class HalfKpDataset(Dataset):
 def dataset_to_batches(dataset: list[tuple[str, tuple[int, int, int], str]],
                        batch_size: int,
                        device: str
-                       ) -> list[tuple[Tensor, Tensor, Tensor, Tensor]]:
+                       ) -> list[tuple[list[tuple[list[int], list[int]]], Tensor, Tensor, Tensor]]:
     batches = []
     index = 0
     while index + batch_size <= len(dataset):
@@ -42,7 +42,7 @@ def dataset_to_batches(dataset: list[tuple[str, tuple[int, int, int], str]],
             if value[0] == 'M':  # TODO
                 continue
             else:
-                value = float(value)
+                value = round(float(value))
             stm = fen_to_stm(fen)
             white_features, black_features = board_to_feature_set(chess.Board(fen))
 
@@ -64,13 +64,9 @@ def fen_to_stm(fen: str) -> chess.Color:
     return 'w' in fen
 
 
-def batch_to_tensors(batch: list[tuple[list[int], list[int]]], device: str) -> tuple[Tensor, Tensor]:
-    white_result = []
-    black_result = []
-    for white_features, black_features in batch:
-        white_result.append(features_to_tensor(white_features, device))
-        black_result.append(features_to_tensor(black_features, device))
-    return stack(white_result).to(device) #TODO, stack(black_result).to(device)
+def batch_to_tensors(batch: list[tuple[list[int], list[int]]], device: str) -> list[tuple[Tensor, Tensor]]:
+    return [(features_to_tensor(white_features, device), features_to_tensor(black_features, device)) for
+            white_features, black_features in batch]
 
 
 def features_to_tensor(features: list[int], device: str) -> Tensor:

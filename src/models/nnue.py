@@ -17,8 +17,13 @@ class NNUE(nn.Module):
                                         self.layer2,
                                         self.layer3)
 
-    def forward(self, x: (torch.Tensor, torch.Tensor), color: torch.Tensor):
-        color = color.reshape(-1, 1).long()
+    def forward(self, x: list[tuple[torch.Tensor, torch.Tensor]], color: torch.Tensor) -> torch.Tensor:
+        result = []
+        for i in range(0, len(x)):
+            result.append(self.fwd(x[i], color[i].item()))
+        return torch.stack(result)
+
+    def fwd(self, x: tuple[torch.Tensor, torch.Tensor], color: int) -> torch.Tensor:
         white = x[0].reshape(1, -1)
         black = x[1].reshape(1, -1)
 
@@ -29,4 +34,4 @@ class NNUE(nn.Module):
 
         relu1 = torch.clamp(accumulator, 0.0, 1.0)
         relu2 = torch.clamp(self.layer2(relu1), 0.0, 1.0)
-        return self.layer3(relu2)
+        return torch.clamp(self.layer3(relu2), 0.0, 1.0)

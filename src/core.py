@@ -90,7 +90,7 @@ def iterate(data, model, criterion, accuracy):
     loss_sum = 0.0
     accuracy_sum = 0.0
     with torch.no_grad():
-        for batch, color, truth in data:
+        for batch, color,interpolation, truth in data:
             out = model.forward(batch, color).reshape(data.batch_size())
             loss = criterion(out, truth)
             accuracy_value = accuracy(out, truth).sum() / data.batch_size()
