@@ -20,6 +20,8 @@ def train(train_data: Dataset,
           prefix: str = "train",
           san_check: bool = True,
           checkpoint: dict = None,
+          interpolate: bool = False,
+          interpolation_lambda:float=0.5,
           save_checkpoint_every: int = 25,
           ):
     Path(CHECKPOINTS_PATCH).mkdir(parents=True, exist_ok=True)
@@ -44,6 +46,8 @@ def train(train_data: Dataset,
         for batch, color, interpolation, truth in train_data:
             optimizer.zero_grad()
             out = model.forward(batch, color).reshape(train_data.batch_size())
+            if interpolate:
+                out = (1.0 - interpolation_lambda) * out + interpolation_lambda * interpolation
             loss = criterion(out, truth)
             accuracy_value = accuracy(out, truth).sum() / train_data.batch_size()
             loss.backward()
@@ -90,7 +94,7 @@ def iterate(data, model, criterion, accuracy):
     loss_sum = 0.0
     accuracy_sum = 0.0
     with torch.no_grad():
-        for batch, color,interpolation, truth in data:
+        for batch, color, interpolation, truth in data:
             out = model.forward(batch, color).reshape(data.batch_size())
             loss = criterion(out, truth)
             accuracy_value = accuracy(out, truth).sum() / data.batch_size()
