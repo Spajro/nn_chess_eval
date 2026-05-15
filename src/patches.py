@@ -1,5 +1,7 @@
 GAMES_PATCH = "resources/lichess201405.pgn"
 PUZZLE_PATCH = "resources/lichess_db_puzzle.csv"
+LICHESS_PATH="resources/lichess.json"
+LICHESS_DATASET_PATH="resources/lichess_dataset.csv"
 GAMES_DATASET_PATCH = "resources/games_dataset.csv"
 PUZZLE_DATASET_PATCH = "resources/puzzle_dataset.csv"
 TRAIN_DATASET_PATCH = "resources/train_dataset.csv"

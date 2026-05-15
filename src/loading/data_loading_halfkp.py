@@ -48,7 +48,11 @@ def dataset_to_batches(dataset: list[tuple[str, tuple[int, int, int], str]],
 
             batch.append((white_features, black_features))
             color.append(stm)
-            interpolation.append(stats[0] / (stats[0] + stats[1] + stats[2]))
+            stats_sum = stats[0] + stats[1] + stats[2]
+            if stats_sum > 0:
+                interpolation.append(stats[0] / stats_sum)
+            else:
+                interpolation.append(0.0)
             if stm == chess.WHITE:
                 truth.append(cp_to_wdl(value))
             else:

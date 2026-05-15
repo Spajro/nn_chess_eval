@@ -47,9 +47,8 @@ with concurrent.futures.ThreadPoolExecutor(20) as executor:
         while counter < len(fens):
             counter += 1
             writer.writerow(queue.get())
-            t1 = time.time()
-            deltat = t1 - t0
-            eta = deltat * (len(fens) - counter) / counter
             if counter % 1000 == 0:
+                deltat = time.time() - t0
+                eta = deltat * (len(fens) - counter) / counter
                 print(str(counter) + "/" + str(len(fens)) + " t:" + format_time(deltat) + " eta: " + format_time(eta))
 print("Eval time: ", time.time() - t0)
