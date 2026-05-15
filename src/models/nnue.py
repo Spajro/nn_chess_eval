@@ -34,13 +34,4 @@ class NNUE(nn.Module):
 
         relu1 = torch.clamp(accumulator, 0.0, 1.0)
         relu2 = torch.clamp(self.layer2(relu1), 0.0, 1.0)
-        #TODO temporary convention change to return white-perspective result
-        result = torch.clamp(self.layer3(relu2), 0.0, 1.0)
-        if color == 1:
-            return result
-        else:
-            one = torch.Tensor([[1.0]])
-            device = result.get_device()
-            if device != -1:
-                one = one.to(device)
-            return one - result
+        return torch.clamp(self.layer3(relu2), 0.0, 1.0)
