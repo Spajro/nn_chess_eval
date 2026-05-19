@@ -3,10 +3,10 @@ import argparse
 import torch
 from torch import nn
 
+from src.nnue import NNUE
 from src.core import train
 from src.loading.data_loading import wdl_to_cp
 from src.loading.data_loading_halfkp import HalfKpDataset
-from src.models.models import get_model
 from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
 
 
@@ -39,7 +39,7 @@ san_check = args.san_check
 train_dataset = HalfKpDataset(TRAIN_DATASET_PATCH, batch_size, device)
 test_dataset = HalfKpDataset(TEST_DATASET_PATCH, batch_size, device)
 
-model = get_model(model_name).to(device)
+model = NNUE().to(device)
 optimizer = torch.optim.SGD(model.classifier.parameters(), lr=lr)
 
 LOAD_FLAG = False

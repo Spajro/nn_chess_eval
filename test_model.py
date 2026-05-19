@@ -4,9 +4,9 @@ import chess
 import torch
 from torch import nn
 
+from src.nnue import NNUE
 from src.loading.data_loading import wdl_to_cp, load_dataset_with_stats
 from src.loading.data_loading_halfkp import features_to_tensor, board_to_feature_set
-from src.models.models import get_model
 from src.patches import TEST_DATASET_PATCH
 from src.rdzawa_bestia_eval import evaluate
 
@@ -84,7 +84,7 @@ name = args.name
 device = args.device
 
 checkpoint = torch.load(name)
-model = get_model(model_name).to(device)
+model = NNUE().to(device)
 model.load_state_dict(checkpoint['model'])
 data = load_dataset_with_stats(TEST_DATASET_PATCH)
 torch.set_printoptions(sci_mode=False)
