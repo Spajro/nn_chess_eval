@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from src.loading.data_loading_halfkp import FEATURES_COUNT
+from src.loading.halfkp import FEATURES_COUNT
 
 M = 2 ** 7
 N = 2 ** 5
@@ -34,4 +34,4 @@ class NNUE(nn.Module):
 
         relu1 = torch.clamp(accumulator, 0.0, 1.0)
         relu2 = torch.clamp(self.layer2(relu1), 0.0, 1.0)
-        return torch.clamp(self.layer3(relu2), 0.0, 1.0)
+        return self.layer3(relu2)

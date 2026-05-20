@@ -6,7 +6,7 @@ from torch import nn
 
 from src.nnue import NNUE
 from src.loading.data_loading import wdl_to_cp, load_dataset_with_stats
-from src.loading.data_loading_halfkp import features_to_tensor, board_to_feature_set
+from src.loading.halfkp import features_to_tensor, board_to_feature_set
 from src.patches import TEST_DATASET_PATCH
 from src.rdzawa_bestia_eval import evaluate
 
