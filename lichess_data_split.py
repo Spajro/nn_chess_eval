@@ -1,9 +1,9 @@
 from random import shuffle
 
-from src.loading.data_loading import save_dataset, load_dataset
+from src.loading.data_loading import load_dataset_with_stats, save_dataset_with_stats
 from src.patches import TEST_DATASET_PATCH, TRAIN_DATASET_PATCH,LICHESS_DATASET_PATH
 
-games_dataset = load_dataset(LICHESS_DATASET_PATH)
+games_dataset = load_dataset_with_stats(LICHESS_DATASET_PATH)
 
 TEST_SIZE = 0.1
 
@@ -15,5 +15,5 @@ test_dataset = games_dataset[games_index:]
 print(len(train_dataset), len(test_dataset))
 
 
-save_dataset(train_dataset, TRAIN_DATASET_PATCH)
-save_dataset(test_dataset, TEST_DATASET_PATCH)
+save_dataset_with_stats(train_dataset, TRAIN_DATASET_PATCH)
+save_dataset_with_stats(test_dataset, TEST_DATASET_PATCH)
