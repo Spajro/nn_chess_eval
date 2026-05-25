@@ -1,0 +1,69 @@
+import argparse
+
+import torch
+from torch import nn
+
+from src.loading.online_dataset import HalfKpDataset
+from src.nnue import NNUE
+from src.continuos_training import train
+from src.loading.data_loading import wdl_to_cp
+from src.loading.continous_dataset import ContinuousHalfKpDataset
+from src.patches import TRAIN_DATASET_PATCH, TEST_DATASET_PATCH
+
+
+def accuracy(out, truth):
+    return torch.abs(wdl_to_cp(truth) - wdl_to_cp(out))
+
+
+parser = argparse.ArgumentParser(description='Halfkp NNUE training')
+parser.add_argument('--model', type=str, default="nnue", help='model to train')
+parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
+parser.add_argument('--epochs', type=int, default=300, help='number of epochs')
+parser.add_argument('--batch_size', type=int, default=64, help='batch size')
+parser.add_argument('--prefix', type=str, default='halfkp_train', help='checkpoint prefix')
+parser.add_argument('--device', type=str, default='cpu', help='cuda:X or cpu')
+parser.add_argument('--cp-interval', type=int, default=25, help='checkpoint interval')
+parser.add_argument('--load-cp', type=str, help='name of checkpoint to load')
+parser.add_argument('--san-check', action='store_true', help='test on training set after every epoch')
+args = parser.parse_args()
+
+model_name = args.model
+lr = args.lr
+epochs = args.epochs
+batch_size = args.batch_size
+prefix = args.prefix
+device = torch.device(args.device)
+cp_interval = args.cp_interval
+load_cp = args.load_cp
+san_check = args.san_check
+
+train_dataset = ContinuousHalfKpDataset(TRAIN_DATASET_PATCH, batch_size, device)
+test_dataset = HalfKpDataset(TEST_DATASET_PATCH, batch_size, device)
+
+model = NNUE().to(device)
+optimizer = torch.optim.SGD(model.classifier.parameters(), lr=lr)
+
+LOAD_FLAG = False
+
+if load_cp:
+    checkpoint = torch.load(load_cp)
+else:
+    checkpoint = {'epoch': 0,
+                  'model': model.state_dict(),
+                  'optimizer': optimizer.state_dict(),
+                  'history': []}
+
+train(train_dataset,
+      test_dataset,
+      model,
+      nn.MSELoss(),
+      optimizer,
+      accuracy,
+      epochs,
+      device,
+      checkpoint=checkpoint,
+      save_checkpoint_every=cp_interval,
+      prefix=prefix,
+      san_check=san_check)
+
+torch.save(checkpoint, prefix + '-final.pt')

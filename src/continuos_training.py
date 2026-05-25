@@ -1,12 +1,13 @@
 import math
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 import torch
 
-from src.loading.data_loading import Dataset
+from src.core import log, iterate
 from src.patches import CHECKPOINTS_PATCH
+from src.loading.data_loading import Dataset
 
 
 def train(train_data: Dataset,
@@ -22,28 +23,31 @@ def train(train_data: Dataset,
           checkpoint: dict = None,
           interpolate: bool = False,
           interpolation_lambda: float = 0.5,
+          checkpoint_every: int = 1e4,
           save_checkpoint_every: int = 25,
           ):
     Path(CHECKPOINTS_PATCH).mkdir(parents=True, exist_ok=True)
-    if checkpoint:
+    if checkpoint: #TODO move to point in dataset
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-        start = checkpoint['epoch']
         for i, passed_time, train_loss, train_acc, val_loss, val_acc, test_loss, test_acc in checkpoint['history']:
             log([('train', train_loss, train_acc), ('san', val_loss, val_acc), ('test', test_loss, test_acc)],
                 passed_time,
                 (i, epoch))
         print("Checkpoint loaded")
-    else:
-        start = 0
+
     model.train(True)
     model.to(device)
     criterion.to(device)
-    for i in range(start, epoch):
+    i=0
+    while True:
         time_started = time.time() * 1000
         loss_sum = 0.0
         accuracy_sum = 0.0
-        for batch, color, interpolation, truth in train_data:
+        count = 0
+        train_data_iter=iter(train_data)
+        while count < checkpoint_every:
+            batch, color, interpolation, truth = next(train_data_iter)
             optimizer.zero_grad()
             out = model.forward(batch, color).reshape(train_data.batch_size())
             if interpolate:
@@ -52,12 +56,14 @@ def train(train_data: Dataset,
             accuracy_value = accuracy(out, truth).sum() / train_data.batch_size()
             loss.backward()
             optimizer.step()
+            count+=1
 
             loss_sum += loss.item()
             accuracy_sum += accuracy_value.item()
 
-        train_loss = loss_sum / len(train_data)
-        train_acc = accuracy_sum / len(train_data)
+        i+=1
+        train_loss = loss_sum / checkpoint_every
+        train_acc = accuracy_sum / checkpoint_every
 
         test_loss, test_acc = iterate(test_data, model, criterion, accuracy)
         if san_check:
@@ -78,42 +84,3 @@ def train(train_data: Dataset,
         log([('train', train_loss, train_acc), ('san', val_loss, val_acc), ('test', test_loss, test_acc)],
             passed_time / 1000,
             (i, epoch))
-
-
-def iterate(data, model, criterion, accuracy):
-    loss_sum = 0.0
-    accuracy_sum = 0.0
-    with torch.no_grad():
-        for batch, color, interpolation, truth in data:
-            out = model.forward(batch, color).reshape(data.batch_size())
-            loss = criterion(out, truth)
-            accuracy_value = accuracy(out, truth).sum() / data.batch_size()
-
-            loss_sum += loss.item()
-            accuracy_sum += accuracy_value.item()
-
-    loss_average = loss_sum / len(data)
-    accuracy_average = accuracy_sum / len(data)
-    return loss_average, accuracy_average
-
-
-def log(data: list[tuple[str, float, float]], passed_time: float, epoch: tuple[int, int] = None):
-    result = ""
-    if epoch:
-        result += f"Epoch [{epoch[0]}/{epoch[1]}], "
-    for text, loss, acc in data:
-        result += f"{text}: {loss:.5f} {acc:.2f}, "
-    result += f" time: {format_time(passed_time)}"
-    print(result)
-
-
-def format_time(seconds: float) -> str:
-    if seconds < 60:
-        return "00h 00m " + str(int(seconds)) + "s"
-    minutes = math.floor(seconds / 60)
-    seconds = math.floor(seconds) - minutes * 60
-    if minutes < 60:
-        return "00h " + str(int(minutes)) + "m " + str(seconds) + "s"
-    hours = math.floor(minutes / 60)
-    minutes = math.floor(minutes - (60 * hours))
-    return str(int(hours)) + "h " + str(minutes) + "m " + str(seconds) + "s"

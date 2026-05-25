@@ -20,7 +20,7 @@ def cp_to_wdl(value: int) -> float:
     return torch.sigmoid(torch.tensor(value) / 410).item()
 
 
-def wdl_to_cp(value: float) -> torch.Tensor:
+def wdl_to_cp(value: torch.Tensor) -> torch.Tensor:
     return torch.logit(value) * 410
 
 
