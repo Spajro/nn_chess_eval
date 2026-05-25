@@ -12,6 +12,7 @@ class HalfKpDataset(Dataset):
         self.size = batch_size
         self.device = device
         self.len = 1
+        self.__first_iter = True
 
     def __iter__(self):
         with open(self.path, 'r') as f:
@@ -22,11 +23,13 @@ class HalfKpDataset(Dataset):
                 while index < self.size:
                     fen, w, d, l, val = next(reader, ("nofen", "w", "d", "l", "val"))
                     if fen == "nofen":
+                        self.__first_iter = False
                         return
                     data.append((fen, (int(w), int(d), int(l)), val))
-                    index+=1
+                    index += 1
                 batch, color, stats, truth = data_to_batch(data, self.size, self.device)
-                self.len+=1
+                if self.__first_iter:
+                    self.len += 1
                 yield batch_to_tensors(batch, self.device), color, stats, truth
 
     def __len__(self):
@@ -49,23 +52,27 @@ def data_to_batch(data: list[tuple[str, tuple[int, int, int], str]],
     interpolation = []
     truth = []
     for fen, stats, value in data:
-        if value[0] == 'M':  # TODO
-            continue
+        if value[0] == 'M':
+            if value[1] == '-':
+                value = 0.0 + 1e-5
+            else:
+                value = 1.0 - 1e-5
         else:
-            value = round(float(value))
-        stm = fen_to_stm(fen)
-        white_features, black_features = board_to_feature_set(chess.Board(fen))
+            value = cp_to_wdl(round(float(value)))
 
+        stm = fen_to_stm(fen)
+        if stm == chess.BLACK:
+            value = 1.0 - value
+
+        white_features, black_features = board_to_feature_set(chess.Board(fen))
         batch.append((white_features, black_features))
         color.append(stm)
+        truth.append(value)
+
         stats_sum = stats[0] + stats[1] + stats[2]
         if stats_sum > 0:
             interpolation.append(stats[0] / stats_sum)
         else:
             interpolation.append(0.0)
-        if stm == chess.WHITE:
-            truth.append(cp_to_wdl(value))
-        else:
-            truth.append(cp_to_wdl(-1.0 * value))
 
     return batch, Tensor(color).to(device), Tensor(interpolation).to(device), Tensor(truth).to(device)
